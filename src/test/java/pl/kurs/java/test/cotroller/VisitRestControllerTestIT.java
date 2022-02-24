@@ -52,7 +52,8 @@ class VisitRestControllerTestIT {
         return new URI("http://localhost:" + serverPort + "/visit");
     }
 
-    @BeforeEach void setUp() {
+    @BeforeEach
+    void setUp() {
         mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
@@ -66,7 +67,40 @@ class VisitRestControllerTestIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
+                .andExpect(MockMvcResultMatchers.content().string("3"));
+    }
+
+    @Test
+    void shouldGetVisitAndThrowsNotFoundDoctor() throws Exception {
+        doNothing().when(emailService).sendSimpleMessage(any(), any(), any());
+        ModelToAddVisit underTest = new ModelToAddVisit(1500, 1,
+                LocalDateTime.of(2017, Month.FEBRUARY, 3, 6, 00, 00));
+        String content = objectMapper.writeValueAsString(underTest);
+        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/booked")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
+                .andExpect(MockMvcResultMatchers.content().string(
+                        "{\"httpStatus\":\"NOT_FOUND\",\"status\":404,\"message\":" +
+                                "\"User Not Found with id : 1500\"}"));
+    }
+
+    @Test
+    void shouldGetVisitAndThrowsNotFoundPatient() throws Exception {
+        doNothing().when(emailService).sendSimpleMessage(any(), any(), any());
+        ModelToAddVisit underTest = new ModelToAddVisit(1500, 1,
+                LocalDateTime.of(2017, Month.FEBRUARY, 3, 6, 00, 00));
+        String content = objectMapper.writeValueAsString(underTest);
+        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/booked")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
+                .andExpect(MockMvcResultMatchers.content().string(
+                        "{\"httpStatus\":\"NOT_FOUND\",\"status\":404,\"message\":" +
+                                "\"User Not Found with id : 1500\"}"));
     }
 
     @Test

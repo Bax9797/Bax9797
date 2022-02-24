@@ -1,7 +1,12 @@
 package pl.kurs.java.test.service.doctor;
 
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import pl.kurs.java.test.dto.DoctorDto;
 import pl.kurs.java.test.entity.Doctor;
 import pl.kurs.java.test.expection.doctor.DoctorNotFoundException;
 import pl.kurs.java.test.expection.doctor.DuplicateNipException;
@@ -11,6 +16,7 @@ import pl.kurs.java.test.model.ModelDoctorToAdd;
 import pl.kurs.java.test.repository.DoctorRepository;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -74,5 +80,13 @@ public class DoctorService {
     public String dismiss(int id) {
         repository.updateDoctorHired(false, id);
         return "changed status of given doctor, this doctor will not be able to handle any visits";
+    }
+
+    public Page<DoctorDto> findAllToPage(Pageable p) {
+        ModelMapper modelMapper = new ModelMapper();
+        Page<Doctor> page = repository.findAll(p);
+        return new PageImpl<DoctorDto>((page.getContent().stream()
+                .map(p1 -> modelMapper.map(p1, DoctorDto.class)
+                ).collect(Collectors.toList())), p, page.getTotalElements());
     }
 }

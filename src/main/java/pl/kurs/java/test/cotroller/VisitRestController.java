@@ -33,7 +33,7 @@ public class VisitRestController {
                     " doctor id not found, patient id not found, or doctor/patient already has visit that date.",
                     content = @Content)})
     @PostMapping("/booked")
-    public ResponseEntity getVisit(@RequestBody ModelToAddVisit modelToAddVisit) {
+    public ResponseEntity postToBooked(@RequestBody ModelToAddVisit modelToAddVisit) {
         return new ResponseEntity(service.validationOfTheEnteredParameterData(modelToAddVisit), HttpStatus.OK);
     }
 

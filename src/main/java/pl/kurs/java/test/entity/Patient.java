@@ -17,7 +17,6 @@ import javax.validation.constraints.NotEmpty;
 @Accessors(chain = true)
 public class Patient {
 
-    //imie zwierzecia, gatunek, rase, wiek, imie i nazwisko wlasciciela, email.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;

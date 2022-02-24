@@ -8,9 +8,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.kurs.java.test.dto.PatientDto;
 import pl.kurs.java.test.entity.Doctor;
 import pl.kurs.java.test.entity.Patient;
 import pl.kurs.java.test.expection.patient.PatientNotFoundException;
@@ -23,9 +26,7 @@ import pl.kurs.java.test.service.patient.PatientService;
 @RequiredArgsConstructor
 public class PatientRestController {
 
-
     private final PatientService patientService;
-    private final PatientRepository repository;
 
     @Operation(summary = "Add new Patient")
     @ApiResponses(value = {
@@ -53,13 +54,14 @@ public class PatientRestController {
     public ResponseEntity getById(@PathVariable("id") int id) {
         return new ResponseEntity(patientService.findById(id), HttpStatus.OK);
     }
+
     @Operation(summary = "Remove Patient")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "changed status of given patient," +
                     " this client is no longer our patient"),
             @ApiResponse(responseCode = "404", description = "Patient not found",
                     content = @Content)})
-    @PutMapping("/remove/{id}")
+    @PutMapping("/{id}/remove")
     public ResponseEntity removeFromTheListOfCurrentPatients(@PathVariable("id") int id) {
         if (!patientService.existsById(id)) {
             throw new PatientNotFoundException("User Not Found with id : " + id);
@@ -72,9 +74,8 @@ public class PatientRestController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "look on page with Patient")})
     @GetMapping("/page")
-    public ResponseEntity pageOfPatient(@RequestParam(defaultValue = "0") int page,
-                                        @RequestParam(defaultValue = "3") int size) {
-        Page<Patient> all = repository.findAll(PageRequest.of(page, size));
+    public ResponseEntity pageOfPatient(@PageableDefault(value = 2, page = 0) Pageable pageable) {
+        Page<PatientDto> all = patientService.findAllToPage(pageable);
         return new ResponseEntity<>(all, HttpStatus.OK);
     }
 }
