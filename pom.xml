@@ -15,9 +15,6 @@
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>11</java.version>
-		<flyway.user>databaseUser</flyway.user>
-		<flyway.password>databasePassword</flyway.password>
-		<flyway.schemas>schemaName</flyway.schemas>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -132,18 +129,41 @@
 			<version>1.6.4</version>
 		</dependency>
 		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-maven-plugin</artifactId>
-			<version>8.5.0</version>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>migrate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<driver>org.h2.Driver</driver>
+					<url>jdbc:h2:mem:testdb</url>
+					<user>sa</user>
+					<password></password>
+					<baselineOnMigrate>true</baselineOnMigrate>
+					<locations>
+						<location>
+							filesystem:src/main/resources/db/migration
+						</location>
+					</locations>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
