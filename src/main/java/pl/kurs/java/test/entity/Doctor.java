@@ -28,9 +28,8 @@ public class Doctor {
     private double rate;
     private String nip;
     private boolean hired;
-    @OneToMany(
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
+    @OneToMany(mappedBy = "doctor",
+            cascade = CascadeType.ALL)
     private List<Visit> visits;
 
     public Doctor(String name, String surname, String medicalSpecialization, String animalSpecialization, double rate, String nip, boolean hired) {

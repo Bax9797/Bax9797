@@ -25,10 +25,8 @@ public class Visit {
     @Column(name = "id")
     private int id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @Column(name = "doctor")
     private Doctor doctor;
     @ManyToOne(fetch = FetchType.LAZY)
-    @Column(name = "patient")
     private Patient patient;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
