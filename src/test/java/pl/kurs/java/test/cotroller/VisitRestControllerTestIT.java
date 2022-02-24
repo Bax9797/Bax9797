@@ -59,7 +59,7 @@ class VisitRestControllerTestIT {
 
     @Test
     void shouldGetVisit() throws Exception {
-        doNothing().when(emailService).sendSimpleMessage(any(), any(), any());
+        doNothing().when(emailService).sendSimpleMessage(any(), any());
         ModelToAddVisit underTest = new ModelToAddVisit(1, 1,
                 LocalDateTime.of(2017, Month.FEBRUARY, 3, 6, 00, 00));
         String content = objectMapper.writeValueAsString(underTest);
@@ -73,7 +73,7 @@ class VisitRestControllerTestIT {
 
     @Test
     void shouldGetVisitAndThrowsNotFoundDoctor() throws Exception {
-        doNothing().when(emailService).sendSimpleMessage(any(), any(), any());
+        doNothing().when(emailService).sendSimpleMessage(any(), any());
         ModelToAddVisit underTest = new ModelToAddVisit(1500, 1,
                 LocalDateTime.of(2017, Month.FEBRUARY, 3, 6, 00, 00));
         String content = objectMapper.writeValueAsString(underTest);
@@ -89,7 +89,7 @@ class VisitRestControllerTestIT {
 
     @Test
     void shouldGetVisitAndThrowsNotFoundPatient() throws Exception {
-        doNothing().when(emailService).sendSimpleMessage(any(), any(), any());
+        doNothing().when(emailService).sendSimpleMessage(any(), any());
         ModelToAddVisit underTest = new ModelToAddVisit(1500, 1,
                 LocalDateTime.of(2017, Month.FEBRUARY, 3, 6, 00, 00));
         String content = objectMapper.writeValueAsString(underTest);

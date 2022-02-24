@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.kurs.java.test.entity.Doctor;
-import pl.kurs.java.test.entity.Visit;
 import pl.kurs.java.test.model.DoctorVisitModel;
 import pl.kurs.java.test.model.ModelToAddVisit;
 import pl.kurs.java.test.model.ModelToFindNearestVisit;
@@ -45,7 +43,7 @@ public class VisitRestController {
             @ApiResponse(responseCode = "400", description = "400 bad request, potential errors:" +
                     "  wrong token or visit confirmed too late",
                     content = @Content)})
-    @GetMapping("/confirm/{token}")
+    @GetMapping("/{token}/confirm")
     public ResponseEntity confirmVisit(@PathVariable("token") String token) {
         return new ResponseEntity(service.checkingTokenToConfirmVisit(token), HttpStatus.OK);
     }
@@ -58,7 +56,7 @@ public class VisitRestController {
             @ApiResponse(responseCode = "400", description = "400 bad request, potential errors:" +
                     "  wrong token or visit confirmed too late",
                     content = @Content)})
-    @GetMapping("/cancel/{token}")
+    @GetMapping("/{token}/cancel")
     public ResponseEntity cancelVisit(@PathVariable("token") String token) {
         return new ResponseEntity(service.checkingTokenToCanceledVisit(token), HttpStatus.OK);
     }

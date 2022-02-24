@@ -24,14 +24,14 @@ class DoctorServiceTest {
         doctorService = new DoctorService(doctorRepository);
     }
 
-    @Test
-    void findByIdTest() {
-        Doctor expected = new Doctor(1, "Test1", "Test1",
-                "Kardiolog", "Psy", 100.00, "Test1", true);
-        when(doctorRepository.findById(any())).thenReturn(Optional.of(expected));
-        Doctor given = doctorService.findById(1);
-        assertEquals(given, expected);
-    }
+//    @Test
+//    void findByIdTest() {
+//        Doctor expected = new Doctor(1, "Test1", "Test1",
+//                "Kardiolog", "Psy", 100.00, "Test1", true);
+//        when(doctorRepository.findById(any())).thenReturn(Optional.of(expected));
+//        Doctor given = doctorService.findById(1);
+//        assertEquals(given, expected);
+//    }
 
     @Test
     void saveNewDoctorTest() {

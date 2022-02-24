@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -38,6 +39,10 @@ public class Patient {
     private String email;
     @Column(name = "current_customer")
     private Boolean currentCustomer;
+    @OneToMany(
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<Visit> visits;
 
     public Patient(String animalName, String animalSpecies, String animalBreed, int age, String ownerName, String ownerSurname, String email, Boolean currentCustomer) {
         this.animalName = animalName;
@@ -49,4 +54,5 @@ public class Patient {
         this.email = email;
         this.currentCustomer = currentCustomer;
     }
+
 }

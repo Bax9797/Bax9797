@@ -24,10 +24,12 @@ public class Visit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private int id;
-    @Column(name = "doctor_id")
-    private int doctorId;
-    @Column(name = "patient_id")
-    private int patientId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "doctor")
+    private Doctor doctor;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "patient")
+    private Patient patient;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @Column(name = "meeting_date")
@@ -37,11 +39,12 @@ public class Visit {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    public Visit(int doctorId, int patientId, LocalDateTime date, int tokenId, Status status) {
-        this.doctorId = doctorId;
-        this.patientId = patientId;
-        this.meetingDate = date;
+    public Visit(Doctor doctor, Patient patient, LocalDateTime meetingDate, int tokenId, Status status) {
+        this.doctor = doctor;
+        this.patient = patient;
+        this.meetingDate = meetingDate;
         this.tokenId = tokenId;
         this.status = status;
     }
+
 }

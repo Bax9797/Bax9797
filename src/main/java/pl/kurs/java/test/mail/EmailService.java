@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import pl.kurs.java.test.entity.Token;
 
@@ -16,7 +17,8 @@ public class EmailService {
 
     private final JavaMailSender emailSender;
 
-    public void sendSimpleMessage(String to, String subject, String text) {
+    public void sendSimpleMessage(String to, String text) {
+        String subject = "Welcome To Vet Clinic!";
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(VET_CLINIC_ADDRESS);

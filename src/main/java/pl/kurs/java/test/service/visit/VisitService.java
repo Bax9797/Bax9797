@@ -44,16 +44,15 @@ public class VisitService {
         tokenGeneratorRepository.saveAndFlush(token);
 
         Visit visit = new Visit()
-                .setDoctorId(model.getDoctorId())
-                .setPatientId(model.getPatientId())
+                .setDoctor(doctorRepository.getById(model.getDoctorId()))
+                .setPatient(patientRepository.getById(model.getPatientId()))
                 .setMeetingDate(model.getDate())
                 .setTokenId(tokenGeneratorRepository.findIdByCode(token.getCode()))
                 .setStatus(Status.BOOKED);
         repository.saveAndFlush(visit);
 
         Optional<Patient> patient = patientRepository.findById(model.getPatientId());
-        emailService.sendSimpleMessage(patient.get().getEmail(), emailService.messageContent(token),
-                "Welcome in VetClinical " + patient.get().getOwnerName());
+        emailService.sendSimpleMessage(patient.get().getEmail(), emailService.messageContent(token));
         return visit;
     }
 
