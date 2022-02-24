@@ -6,14 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pl.kurs.java.test.dto.DoctorDto;
 import pl.kurs.java.test.dto.PatientDto;
-import pl.kurs.java.test.entity.Doctor;
 import pl.kurs.java.test.entity.Patient;
-import pl.kurs.java.test.expection.doctor.EmptyFieldsException;
-import pl.kurs.java.test.expection.patient.AgeAnimalNegativeException;
-import pl.kurs.java.test.expection.patient.DuplicateEmailException;
-import pl.kurs.java.test.expection.patient.PatientNotFoundException;
+import pl.kurs.java.test.exception.doctor.EmptyFieldsException;
+import pl.kurs.java.test.exception.patient.AgeAnimalNegativeException;
+import pl.kurs.java.test.exception.patient.DuplicateEmailException;
+import pl.kurs.java.test.exception.patient.PatientNotFoundException;
 import pl.kurs.java.test.model.ModelPatientToAdd;
 import pl.kurs.java.test.repository.PatientRepository;
 

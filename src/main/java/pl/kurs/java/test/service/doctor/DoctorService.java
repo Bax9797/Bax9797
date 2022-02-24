@@ -8,10 +8,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.kurs.java.test.dto.DoctorDto;
 import pl.kurs.java.test.entity.Doctor;
-import pl.kurs.java.test.expection.doctor.DoctorNotFoundException;
-import pl.kurs.java.test.expection.doctor.DuplicateNipException;
-import pl.kurs.java.test.expection.doctor.EmptyFieldsException;
-import pl.kurs.java.test.expection.doctor.SalaryNegativeException;
+import pl.kurs.java.test.exception.doctor.DoctorNotFoundException;
+import pl.kurs.java.test.exception.doctor.DuplicateNipException;
+import pl.kurs.java.test.exception.doctor.EmptyFieldsException;
+import pl.kurs.java.test.exception.doctor.SalaryNegativeException;
 import pl.kurs.java.test.model.ModelDoctorToAdd;
 import pl.kurs.java.test.repository.DoctorRepository;
 
