@@ -27,6 +27,11 @@ CREATE TABLE `visit` (
 `token_id` int,
 `status` nvarchar(45));
 
+CREATE TABLE `token_generator` (
+`id` int AUTO_INCREMENT,
+`code` nvarchar(255),
+`expire_date` datetime);
+
 insert into medical_staff(name,surname,medical_specialization, animal_specialization,rate,nip, hired)
 VALUES('Tomasz','Kot','kardiolog','pies','100.00','54366732',1);
 
