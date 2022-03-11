@@ -24,14 +24,14 @@ class DoctorServiceTest {
         doctorService = new DoctorService(doctorRepository);
     }
 
-//    @Test
-//    void findByIdTest() {
-//        Doctor expected = new Doctor(1, "Test1", "Test1",
-//                "Kardiolog", "Psy", 100.00, "Test1", true);
-//        when(doctorRepository.findById(any())).thenReturn(Optional.of(expected));
-//        Doctor given = doctorService.findById(1);
-//        assertEquals(given, expected);
-//    }
+    @Test
+    void findByIdTest() {
+        Doctor expected = new Doctor("Test1", "Test1",
+                "Kardiolog", "Psy", 100.00, "Test1", true);
+        when(doctorRepository.findById(any())).thenReturn(Optional.of(expected));
+        Doctor given = doctorService.findById(1);
+        assertEquals(given, expected);
+    }
 
     @Test
     void saveNewDoctorTest() {
@@ -51,7 +51,7 @@ class DoctorServiceTest {
                 "Kardiolog", "Psy", 100.00, "Test1");
         when(doctorRepository.saveAndFlush(any(Doctor.class)))
                 .thenAnswer(i -> i.getArguments()[0]);
-        Doctor given = doctorService.validationOfTheEnteredParameterData(modelDoctorToAdd);
+        Doctor given = doctorService.saveNewDoctor(modelDoctorToAdd);
         Doctor expected = new Doctor().setName("Test1").setSurname("Test1").setMedicalSpecialization("Kardiolog")
                 .setAnimalSpecialization("Psy").setRate(100.00).setNip("Test1").setHired(true);
         assertEquals(given, expected);

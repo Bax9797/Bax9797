@@ -30,19 +30,23 @@ public class Visit {
     private Patient patient;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    @Column(name = "meeting_date")
-    private LocalDateTime meetingDate;
+    @Column(name = "start_Visit")
+    private LocalDateTime startVisit;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @Column(name = "end_visit")
+    private LocalDateTime endVisit;
     @Column(name = "token_id")
     private int tokenId;
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    public Visit(Doctor doctor, Patient patient, LocalDateTime meetingDate, int tokenId, Status status) {
+    public Visit(Doctor doctor, Patient patient, LocalDateTime startVisit, LocalDateTime endVisit, int tokenId, Status status) {
         this.doctor = doctor;
         this.patient = patient;
-        this.meetingDate = meetingDate;
+        this.startVisit = startVisit;
+        this.endVisit = endVisit;
         this.tokenId = tokenId;
         this.status = status;
     }
-
 }

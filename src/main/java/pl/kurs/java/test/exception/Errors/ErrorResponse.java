@@ -6,12 +6,13 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class Error {
-    private HttpStatus httpStatus;
-    private int status;
+public class ErrorResponse {
     private String message;
+    private List<String> details;
 }

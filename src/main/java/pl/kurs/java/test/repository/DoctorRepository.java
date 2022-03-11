@@ -12,12 +12,16 @@ import java.util.List;
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
 
-    Doctor findByNip(String nip);
-
     @Modifying
     @Transactional
     @Query("UPDATE Doctor d SET d.hired = ?1 WHERE d.id = ?2")
     void updateDoctorHired(boolean hired, int id);
 
-    List<Doctor> findAllByMedicalSpecializationAndAnimalSpecialization(String medicalSpecialization, String animalSpecialization);
+    List<Doctor> findAllByMedicalSpecializationAndAnimalSpecializationAndHired(String medicalSpecialization, String animalSpecialization, boolean hired);
+
+    boolean existsByNip(String nip);
+
+    @Transactional
+    @Query("SELECT hired FROM Doctor WHERE id = ?1")
+    boolean getStatusHiredById(int id);
 }

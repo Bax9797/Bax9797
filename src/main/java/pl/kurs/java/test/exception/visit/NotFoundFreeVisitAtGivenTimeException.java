@@ -5,5 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class NotFoundFreeVisitAtGivenTimeException extends RuntimeException {
-    public NotFoundFreeVisitAtGivenTimeException(String message) {super(message);}
+    public NotFoundFreeVisitAtGivenTimeException(String message) {
+        super(message);
+    }
 }

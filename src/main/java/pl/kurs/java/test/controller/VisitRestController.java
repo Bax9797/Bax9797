@@ -9,10 +9,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.kurs.java.test.model.DoctorVisitModel;
-import pl.kurs.java.test.model.ModelToAddVisit;
+import pl.kurs.java.test.dto.NearestVisitDto;
+import pl.kurs.java.test.dto.ResponseMessageDto;
 import pl.kurs.java.test.model.ModelToFindNearestVisit;
+import pl.kurs.java.test.model.ModelVisitToAdd;
 import pl.kurs.java.test.service.visit.VisitService;
+
+import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,66 +25,60 @@ public class VisitRestController {
 
     private final VisitService service;
 
-
     @Operation(summary = "Booked visit")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Booked visit successful",
+            @ApiResponse(responseCode = "200", description = "response message: booked visit successful",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = Integer.class))}),
-            @ApiResponse(responseCode = "400", description = "400 bad request, potential errors:" +
+            @ApiResponse(responseCode = "400", description = " potential errors:" +
                     " doctor id not found, patient id not found, or doctor/patient already has visit that date.",
                     content = @Content)})
     @PostMapping("/booked")
-    public ResponseEntity postToBooked(@RequestBody ModelToAddVisit modelToAddVisit) {
+    public ResponseEntity postToBooked(@Valid @RequestBody ModelVisitToAdd modelToAddVisit) {
         return new ResponseEntity(service.validationOfTheEnteredParameterData(modelToAddVisit), HttpStatus.OK);
     }
 
     @Operation(summary = "Confirm visit")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Confirm visit successful",
+            @ApiResponse(responseCode = "200", description = "response message: confirm visit successful",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = String.class))}),
-            @ApiResponse(responseCode = "400", description = "400 bad request, potential errors:" +
-                    "  wrong token or visit confirmed too late",
+            @ApiResponse(responseCode = "400", description = "potential errors:" +
+                    "  wrong token code or visit confirmed too late",
                     content = @Content)})
     @GetMapping("/{token}/confirm")
     public ResponseEntity confirmVisit(@PathVariable("token") String token) {
-        return new ResponseEntity(service.checkingTokenToConfirmVisit(token), HttpStatus.OK);
+        ResponseMessageDto response = new ResponseMessageDto().setMessage(service.checkingTokenToConfirmVisit(token));
+        return new ResponseEntity(response, HttpStatus.OK);
     }
 
     @Operation(summary = "Cancel visit")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cancel visit successful",
+            @ApiResponse(responseCode = "200", description = "response message: cancel visit successful",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = String.class))}),
-            @ApiResponse(responseCode = "400", description = "400 bad request, potential errors:" +
+            @ApiResponse(responseCode = "400", description = "potential errors:" +
                     "  wrong token or visit confirmed too late",
                     content = @Content)})
     @GetMapping("/{token}/cancel")
     public ResponseEntity cancelVisit(@PathVariable("token") String token) {
-        return new ResponseEntity(service.checkingTokenToCanceledVisit(token), HttpStatus.OK);
+        ResponseMessageDto response = new ResponseMessageDto().setMessage(service.checkingTokenToCanceledVisit(token));
+        return new ResponseEntity(response, HttpStatus.OK);
     }
 
     @Operation(summary = "find visit")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cancel visit successful",
+            @ApiResponse(responseCode = "200", description = "response message: cancel visit successful",
                     content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = DoctorVisitModel.class))}),
-            @ApiResponse(responseCode = "400", description = " 400badRequest: no type, no animal support" +
+                            schema = @Schema(implementation = NearestVisitDto.class))}),
+            @ApiResponse(responseCode = "400", description = " potential errors: no type, no animal support" +
                     " or invalid dates",
                     content = @Content)})
     @PostMapping("/find")
-    public ResponseEntity findTopNearestVisits(@RequestBody ModelToFindNearestVisit modelToFindNearestVisit) {
-        return new ResponseEntity(service.findNearestVisits(modelToFindNearestVisit), HttpStatus.OK);
+    public ResponseEntity findTopNearestVisits(@Valid @RequestBody ModelToFindNearestVisit modelToFindNearestVisit) {
+        List<NearestVisitDto> response = service.findNearestVisits(modelToFindNearestVisit);
+        return new ResponseEntity(response, HttpStatus.OK);
     }
-//
-//    @POST
-///check
-//    should find top few (configurable parameter) nearest visits for given parameters
-//    example body: { "type": "kardiolog", "animal": "pies", "from": "date_from", "to": "date_to" }
-//    response: 200OK body: [{"doctor":{"id": 3, "name": "Jan Kowalski"} "date": "2021-05-01 15:00:00"}, ...]
-//    response: 400badRequest, no type, no animal support, invalid dates etc.*/
-
 }
 /*API dla wizyt:
 root path: /visit

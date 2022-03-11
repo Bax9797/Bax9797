@@ -1,4 +1,4 @@
-package pl.kurs.java.test.model;
+package pl.kurs.java.test.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import pl.kurs.java.test.model.DoctorVisitModel;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class NearestVisit {
+public class NearestVisitDto {
 
     private DoctorVisitModel doctor;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

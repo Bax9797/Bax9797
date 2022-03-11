@@ -5,5 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class ValidDateException extends RuntimeException {
-    public ValidDateException(String message) {super(message);}
+    public ValidDateException(String message) {
+        super(message);
+    }
 }

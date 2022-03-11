@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import pl.kurs.java.test.annotation.NotAllowedDate;
 
 import java.time.LocalDateTime;
 
@@ -21,10 +22,12 @@ public class ModelToFindNearestVisit {
     private String animalSpecialization;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @NotAllowedDate
     @JsonProperty(value = "date_from")
     private LocalDateTime dateFrom;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @NotAllowedDate
     @JsonProperty(value = "date_to")
     private LocalDateTime dateTo;
 }

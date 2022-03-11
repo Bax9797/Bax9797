@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 @Table(name = "token_generator")
 public class Token {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

@@ -6,8 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Data
@@ -33,8 +31,6 @@ public class Patient {
     private String ownerName;
     @Column(name = "owner_surname")
     private String ownerSurname;
-    @NotEmpty
-    @Email
     @Column(name = "email", unique = true)
     private String email;
     @Column(name = "current_customer")
@@ -53,5 +49,4 @@ public class Patient {
         this.email = email;
         this.currentCustomer = currentCustomer;
     }
-
 }

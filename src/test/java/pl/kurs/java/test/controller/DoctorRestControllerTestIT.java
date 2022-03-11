@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 class DoctorRestControllerTestIT {
 
@@ -56,43 +56,42 @@ class DoctorRestControllerTestIT {
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
-                .andExpect(MockMvcResultMatchers.content().string("{\"id\":4,\"name\":\"Michal\"," +
+                .andExpect(MockMvcResultMatchers.content().string("{\"id\":2,\"name\":\"Michal\"," +
                         "\"surname\":\"Kot\",\"medicalSpecialization\":\"Kardiolog\",\"animalSpecialization\":\"Psy\"," +
-                        "\"rate\":100.0,\"nip\":\"3523532532\",\"hired\":true}"));
+                        "\"rate\":100.0,\"nip\":\"3523532532\"}"));
     }
 
     @Test
     void shouldNotAddDoctorAndThrowsSalaryNegativeException() throws Exception {
         ModelDoctorToAdd underTest = new ModelDoctorToAdd("Michal", "Kot", "Kardiolog",
-                "Psy", -100.00, "3523532532");
+                "Psy", -100.00, "35123532532");
         String content = objectMapper.writeValueAsString(underTest);
         mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/add")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string("{\"httpStatus\":\"BAD_REQUEST\"," +
-                        "\"status\":400,\"message\":\"salary cannot be negative\"}"));
+                .andExpect(MockMvcResultMatchers.content().string("{\"message\":\"Validation Failed\"," +
+                        "\"details\":[\"rate cannot be negative\"]}"));
     }
 
     @Test
     void shouldNotAddDoctorAndThrowsDuplicateNipException() throws Exception {
         ModelDoctorToAdd underTest = new ModelDoctorToAdd("Michal", "Kot", "Kardiolog",
-                "Psy", 100.00, "864232112");
+                "Psy", 100.00, "54366732");
         String content = objectMapper.writeValueAsString(underTest);
         mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/add")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string("{\"httpStatus\":\"BAD_REQUEST\"," +
-                        "\"status\":400,\"message\":\"duplicate tax identification number. " +
-                        "There is a person with the given tax identification number in the database\"}"));
+                .andExpect(MockMvcResultMatchers.content().string("{\"message\":\"Validation Failed\"," +
+                        "\"details\":[\"Nip is already taken\"]}"));
     }
 
     @Test
     void shouldNotAddDoctorAndThrowsEmptyFieldsException() throws Exception {
-        ModelDoctorToAdd underTest = new ModelDoctorToAdd("", "", "Kardiolog",
+        ModelDoctorToAdd underTest = new ModelDoctorToAdd("", "Kowal", "Kardiolog",
                 "Psy", 100.00, "864232112222");
         String content = objectMapper.writeValueAsString(underTest);
         mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/add")
@@ -100,9 +99,8 @@ class DoctorRestControllerTestIT {
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string("{\"httpStatus\":\"BAD_REQUEST\"," +
-                        "\"status\":400,\"message\":\"" +
-                        "all fields must be not empty or the rate was entered incorrectly\"}"));
+                .andExpect(MockMvcResultMatchers.content().string("{\"message\":\"Validation Failed\"," +
+                        "\"details\":[\"field name must be not empty\"]}"));
     }
 
     @Test
@@ -111,9 +109,9 @@ class DoctorRestControllerTestIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
-                .andExpect(MockMvcResultMatchers.content().string("{\"id\":1,\"name\":\"MichaÅ\u0082\"," +
-                        "\"surname\":\"Gocek\",\"medicalSpecialization\":\"Kardiolog\"," +
-                        "\"animalSpecialization\":\"Pies\",\"rate\":100.0,\"nip\":\"864232112\",\"hired\":true}"));
+                .andExpect(MockMvcResultMatchers.content().string("{\"id\":1,\"name\":\"Tomasz\"," +
+                        "\"surname\":\"Kot\",\"medicalSpecialization\":\"kardiolog\",\"animalSpecialization\":\"pies\"," +
+                        "\"rate\":100.0,\"nip\":\"54366732\"}"));
     }
 
     @Test
@@ -122,28 +120,26 @@ class DoctorRestControllerTestIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string("{\"httpStatus\":\"NOT_FOUND\"," +
-                        "\"status\":404,\"message\":\"User Not Found with id : 500\"}"));
+                .andExpect(MockMvcResultMatchers.content().string("User Not Found with id : 500"));
     }
 
     @Test
     void shouldDismissTheEmployee() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.put(createServerAddress() + "/fire/3")
+        mockMvc.perform(MockMvcRequestBuilders.put(createServerAddress() + "/1/fire")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
-                .andExpect(MockMvcResultMatchers.content().string("changed status of given doctor," +
-                        " this doctor will not be able to handle any visits"));
+                .andExpect(MockMvcResultMatchers.content().string("{\"message\":\"changed status of given " +
+                        "doctor, this doctor will not be able to handle any visits\"}"));
     }
 
     @Test
     void shouldNotDismissTheEmployeeThrowDoctorNotFoundExceptions() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.put(createServerAddress() + "/fire/4221")
+        mockMvc.perform(MockMvcRequestBuilders.put(createServerAddress() + "/500/fire")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string("{\"httpStatus\":\"NOT_FOUND\"," +
-                        "\"status\":404,\"message\":\"User Not Found with id : 4221\"}"));
+                .andExpect(MockMvcResultMatchers.content().string("User Not Found with id : 500"));
     }
 
     @Test

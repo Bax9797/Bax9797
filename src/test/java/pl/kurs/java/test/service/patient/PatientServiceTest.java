@@ -52,7 +52,7 @@ class PatientServiceTest {
                 "test1", "test1", "test2022@gmail.com");
         when(patientRepository.saveAndFlush(any(Patient.class)))
                 .thenAnswer(i -> i.getArguments()[0]);
-        Patient given = patientService.validationOfTheEnteredParameterData(model);
+        Patient given = patientService.saveNewPatient(model);
         Patient expected = new Patient().setAnimalName("test1").setAnimalSpecies("pies").setAnimalBreed("pitbull").setAge(2)
                 .setOwnerName("test1").setOwnerSurname("test1").setEmail("test2022@gmail.com").setCurrentCustomer(true);
         assertEquals(given, expected);
