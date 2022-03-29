@@ -1,19 +1,26 @@
 package pl.kurs.java.test.entity;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "medical_staff")
 @Accessors(chain = true)
+@Where(clause = "hired = true")
 public class Doctor {
 
     @Id
@@ -21,16 +28,17 @@ public class Doctor {
     private int id;
     private String name;
     private String surname;
-    @Column(name = "medical_specialization")
     private String medicalSpecialization;
-    @Column(name = "animal_specialization")
     private String animalSpecialization;
     private double rate;
+    @Column(unique = true)
     private String nip;
     private boolean hired;
     @OneToMany(mappedBy = "doctor",
             cascade = CascadeType.ALL)
-    private List<Visit> visits;
+    private Set<Visit> visits;
+    @Version
+    private int version;
 
     public Doctor(String name, String surname, String medicalSpecialization, String animalSpecialization, double rate, String nip, boolean hired) {
         this.name = name;

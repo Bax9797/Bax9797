@@ -15,8 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.kurs.java.test.dto.DoctorDto;
 import pl.kurs.java.test.dto.ResponseMessageDto;
-import pl.kurs.java.test.exception.doctor.DoctorNotFoundException;
-import pl.kurs.java.test.model.ModelDoctorToAdd;
+import pl.kurs.java.test.model.CreateDoctorRequest;
 import pl.kurs.java.test.service.doctor.DoctorService;
 
 import javax.validation.Valid;
@@ -33,14 +32,14 @@ public class DoctorRestController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "response message: add doctor successful",
                     content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ModelDoctorToAdd.class))}),
+                            schema = @Schema(implementation = CreateDoctorRequest.class))}),
             @ApiResponse(responseCode = "400", description = "potential error: all fields must be not empty or null." +
                     " Salary cannot be negative. Duplicate tax identification number.",
                     content = @Content)})
-    @PostMapping("/add")
-    public ResponseEntity addDoctor(@Valid @RequestBody ModelDoctorToAdd modelDoctorToAdd) {
+    @PostMapping
+    public ResponseEntity addDoctor(@Valid @RequestBody CreateDoctorRequest createDoctorRequest) {
         DoctorDto response = modelMapper
-                .map(doctorService.saveNewDoctor(modelDoctorToAdd), DoctorDto.class);
+                .map(doctorService.saveNewDoctor(createDoctorRequest), DoctorDto.class);
         return new ResponseEntity(response, HttpStatus.CREATED);
     }
 
@@ -65,17 +64,19 @@ public class DoctorRestController {
                     content = @Content)})
     @PutMapping("/{id}/fire")
     public ResponseEntity dismissTheEmployee(@PathVariable("id") int id) {
-        if (!doctorService.existsById(id)) throw new DoctorNotFoundException("User Not Found with id : " + id);
-        ResponseMessageDto response = new ResponseMessageDto().setMessage(doctorService.dismiss(id));
+        doctorService.dismiss(id);
+        ResponseMessageDto response =
+                new ResponseMessageDto("changed status of given doctor id, this doctor will be not able to handle any visits");
         return new ResponseEntity(response, HttpStatus.OK);
     }
 
     @Operation(summary = "Page wit Doctor")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "response message: look on page with doctor")})
-    @GetMapping("/page")
-    public ResponseEntity pageOfDoctor(@PageableDefault() Pageable pageable) {
-        Page<DoctorDto> response = doctorService.findAllToPage(pageable);
+    @GetMapping
+    public ResponseEntity pageOfDoctor(@PageableDefault Pageable pageable) {
+        Page<DoctorDto> response = doctorService.findAllToPage(pageable)
+                .map(doctor -> modelMapper.map(doctor, DoctorDto.class));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

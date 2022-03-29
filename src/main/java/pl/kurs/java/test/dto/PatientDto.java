@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class PatientDto {
-
     private int id;
     private String animalName;
     private String animalSpecies;

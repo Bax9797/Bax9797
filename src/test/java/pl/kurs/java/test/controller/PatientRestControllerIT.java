@@ -7,19 +7,16 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.context.WebApplicationContext;
-import pl.kurs.java.test.model.ModelPatientToAdd;
+import pl.kurs.java.test.model.CreatePatientRequest;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @RunWith(SpringRunner.class)
@@ -28,18 +25,13 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @AutoConfigureMockMvc
 class PatientRestControllerIT {
 
-    @LocalServerPort
-    private int serverPort;
+
     @Autowired
     MockMvc mockMvc;
     @Autowired
     private WebApplicationContext webApplicationContext;
     @Autowired
     private ObjectMapper objectMapper;
-
-    private URI createServerAddress() throws URISyntaxException {
-        return new URI("http://localhost:" + serverPort + "/patient");
-    }
 
     @BeforeEach
     void setUp() {
@@ -48,102 +40,109 @@ class PatientRestControllerIT {
 
     @Test
     void shouldAddPatient() throws Exception {
-        ModelPatientToAdd underTest = new ModelPatientToAdd("Kapsel", "Pies", "Pitbull",
+        CreatePatientRequest underTest = new CreatePatientRequest("Kapsel", "Pies", "Pitbull",
                 4, "Michał", "Piec", "mkrolak97797@gmail.com");
         String content = objectMapper.writeValueAsString(underTest);
-        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/add")
+        mockMvc.perform(post("/patient")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
-    }
-
-    @Test
-    void shouldNotAddPatientAndThrowExceptionAgeAnimalNegativeException() throws Exception {
-        ModelPatientToAdd underTest = new ModelPatientToAdd("Kapsel", "Pies", "Pitbull",
-                -4, "Michał", "Piec", "mkrolak97433797@gmail.com");
-        String content = objectMapper.writeValueAsString(underTest);
-        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/add")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(content)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string(
-                        "{\"message\":\"Validation Failed\",\"details\":[\"animal age cannot be negative\"]}"));
-    }
-
-    @Test
-    void shouldNotAddPatientAndThrowEmptyFieldsException() throws Exception {
-        ModelPatientToAdd underTest = new ModelPatientToAdd("", "pies", "Pitbull",
-                4, "Michał", "Kot", "mkrolak97797@gmail.com");
-        String content = objectMapper.writeValueAsString(underTest);
-        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/add")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(content)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string("{\"message\":\"Validation Failed\",\"details\":[\"field animal name must be not empty\"]}"));
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.animalName").value("Kapsel"))
+                .andExpect(jsonPath("$.animalSpecies").value("Pies"))
+                .andExpect(jsonPath("$.animalBreed").value("Pitbull"))
+                .andExpect(jsonPath("$.age").value("4"))
+                .andExpect(jsonPath("$.ownerName").value("Michał"))
+                .andExpect(jsonPath("$.ownerSurname").value("Piec"))
+                .andExpect(jsonPath("$.email").value("mkrolak97797@gmail.com"));
     }
 
     @Test
     void shouldNotAddPatientAndThrowDuplicateEmailException() throws Exception {
-        ModelPatientToAdd underTest = new ModelPatientToAdd("Kapsel", "Pies", "Pitbull",
+        CreatePatientRequest underTest = new CreatePatientRequest("Kapsel", "Pies", "Pitbull",
                 4, "Michał", "Piec", "mts@gmail.com");
         String content = objectMapper.writeValueAsString(underTest);
-        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/add")
+        mockMvc.perform(post("/patient")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string(
-                        "{\"message\":\"Validation Failed\",\"details\":[\"Email is already taken\"]}"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("email"))
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("Email is already taken"));
+    }
+
+    @Test
+    void shouldNotAddPatientAndThrowExceptionAgeAnimalNegativeException() throws Exception {
+        CreatePatientRequest underTest = new CreatePatientRequest("Kapsel", "Pies", "Pitbull",
+                -4, "Michał", "Piec", "mkrolak97433797@gmail.com");
+        String content = objectMapper.writeValueAsString(underTest);
+        mockMvc.perform(post("/patient")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("age"))
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("animal age cannot be negative"));
+    }
+
+    @Test
+    void shouldNotAddPatientAndThrowEmptyFieldsException() throws Exception {
+        CreatePatientRequest underTest = new CreatePatientRequest("", "pies", "Pitbull",
+                4, "Michał", "Kot", "mkrolak97797@gmail.com");
+        String content = objectMapper.writeValueAsString(underTest);
+        mockMvc.perform(post("/patient")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("animalName"))
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("field animal name must be " +
+                        "not empty"));
     }
 
     @Test
     void shouldGetById() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(createServerAddress() + "/1")
+        mockMvc.perform(get("/patient/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
-                .andExpect(MockMvcResultMatchers.content().string(
-                        "{\"id\":1,\"animalName\":\"Kapsel\",\"animalSpecies\":\"pies\"," +
-                                "\"animalBreed\":\"dog\",\"age\":5,\"ownerName\":\"Igor\",\"ownerSurname\":\"Kot\"," +
-                                "\"email\":\"mts@gmail.com\"}"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"));
     }
 
     @Test
     void shouldNotGetByIdAndThrowsNotFoundException() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(createServerAddress() + "/500")
+        mockMvc.perform(get("/patient/500")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string("User Not Found with id : 500"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorMessage").value("500"));
     }
 
     @Test
     void shouldRemoveFromTheListOfCurrentPatients() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.put(createServerAddress() + "/1/remove")
+        mockMvc.perform(put("/patient/1/remove")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
-                .andExpect(MockMvcResultMatchers.content().string("{\"message\":\"changed status of given" +
-                        " patient, this client is no longer our patient\"}"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(
+                        "changed status of given patient id, this client is no longer our patient"));
     }
 
     @Test
     void shouldNotRemoveFromTheListOfCurrentPatientsAndThrowsNotFoundException() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.put(createServerAddress() + "/1111/remove")
+        mockMvc.perform(put("/patient/1111/remove")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string("User Not Found with id : 1111"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorMessage").value("1111"));
     }
 
     @Test
     void shouldReturnPageOfPatient() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(createServerAddress() + "/page")
+        mockMvc.perform(get("/patient")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pageable.paged").value("true"));
     }
 }

@@ -4,8 +4,9 @@ create table `medical_staff`( `id` int NOT NULL AUTO_INCREMENT,
  `medical_specialization` nvarchar(255),
  `animal_specialization` nvarchar (255),
  `rate` nvarchar (255),
- `nip` nvarchar(255),
- `hired` bool);
+ `nip` nvarchar(255) UNIQUE,
+ `hired` bool,
+ `version`int NOT NULL  );
 
 create table `patient_list` (
 `id` int NOT NULL AUTO_INCREMENT,
@@ -16,7 +17,8 @@ create table `patient_list` (
 `owner_name` nvarchar(45) NOT NULL,
 `owner_surname` nvarchar(45) NOT NULL,
 `email` nvarchar(45) NOT NULL,
-`current_customer` bool);
+`current_customer` bool,
+`version`int NOT NULL);
 
 
 CREATE TABLE `visit` (
@@ -26,11 +28,13 @@ CREATE TABLE `visit` (
 `start_visit` datetime,
 `end_visit` datetime,
 `token_id` int,
-`status` nvarchar(45));
+`status` nvarchar(45),
+`version`int NOT NULL);
 
 CREATE TABLE `token_generator` (
   `id` int NOT NULL AUTO_INCREMENT,
   `code` nvarchar(100) NOT NULL,
-  `expire_date` datetime NOT NULL);
+  `expire_date` datetime NOT NULL,
+  `version`int NOT NULL);
 
 

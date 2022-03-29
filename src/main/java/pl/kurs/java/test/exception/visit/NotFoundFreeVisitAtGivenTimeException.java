@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class NotFoundFreeVisitAtGivenTimeException extends RuntimeException {
-    public NotFoundFreeVisitAtGivenTimeException(String message) {
-        super(message);
+    public NotFoundFreeVisitAtGivenTimeException() {
+        super("There is no free visit at given time, please change the time slot for the meeting");
     }
 }

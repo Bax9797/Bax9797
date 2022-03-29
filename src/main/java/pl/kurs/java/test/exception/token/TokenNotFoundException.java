@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class TokenNotFoundException extends RuntimeException {
-    public TokenNotFoundException(String message) {
-        super(message);
+    public TokenNotFoundException() {
+        super("There is no Token with the given parameters");
     }
 }

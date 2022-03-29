@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ModelPatientToAdd {
+public class CreatePatientRequest {
 
     @NotBlank(message = "field animal name must be not empty")
     @NotNull(message = "field animal name must be not null")
@@ -33,7 +33,6 @@ public class ModelPatientToAdd {
     @NotNull(message = "field owner surname must be not null")
     private String ownerSurname;
     @EmailNotExisting
-    @Email(message = "email should be a valid")
     @NotBlank(message = "field email must be not empty")
     private String email;
 }

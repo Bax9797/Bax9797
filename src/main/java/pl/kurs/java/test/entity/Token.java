@@ -1,16 +1,12 @@
 package pl.kurs.java.test.entity;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -20,13 +16,11 @@ public class Token {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private int id;
-    @Column(name = "code")
     private String code;
-    @Column(name = "expire_date")
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime expireDate;
+    @Version
+    private int version;
 
     public Token(String code, LocalDateTime expireDate) {
         this.code = code;

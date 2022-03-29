@@ -1,29 +1,36 @@
 package pl.kurs.java.test.controller;
 
+import freemarker.template.TemplateException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.kurs.java.test.dto.NearestVisitDto;
 import pl.kurs.java.test.dto.ResponseMessageDto;
-import pl.kurs.java.test.model.ModelToFindNearestVisit;
-import pl.kurs.java.test.model.ModelVisitToAdd;
+import pl.kurs.java.test.dto.VisitIdDto;
+import pl.kurs.java.test.model.FindVisitsRequest;
+import pl.kurs.java.test.model.VisitToAddRequest;
 import pl.kurs.java.test.service.visit.VisitService;
 
+import javax.mail.MessagingException;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/visit")
 public class VisitRestController {
 
-    private final VisitService service;
+    private final VisitService visitService;
+    private final ModelMapper modelMapper;
 
     @Operation(summary = "Booked visit")
     @ApiResponses(value = {
@@ -34,8 +41,9 @@ public class VisitRestController {
                     " doctor id not found, patient id not found, or doctor/patient already has visit that date.",
                     content = @Content)})
     @PostMapping("/booked")
-    public ResponseEntity postToBooked(@Valid @RequestBody ModelVisitToAdd modelToAddVisit) {
-        return new ResponseEntity(service.validationOfTheEnteredParameterData(modelToAddVisit), HttpStatus.OK);
+    public ResponseEntity postToBooked(@Valid @RequestBody VisitToAddRequest visitToAddRequest) throws MessagingException, TemplateException, IOException {
+        VisitIdDto response = new VisitIdDto().setId(visitService.validationOfTheEnteredParameterData(visitToAddRequest));
+        return new ResponseEntity(response, HttpStatus.CREATED);
     }
 
     @Operation(summary = "Confirm visit")
@@ -48,7 +56,8 @@ public class VisitRestController {
                     content = @Content)})
     @GetMapping("/{token}/confirm")
     public ResponseEntity confirmVisit(@PathVariable("token") String token) {
-        ResponseMessageDto response = new ResponseMessageDto().setMessage(service.checkingTokenToConfirmVisit(token));
+        visitService.checkingTokenToConfirmVisit(token);
+        ResponseMessageDto response = new ResponseMessageDto("visit confirmed!");
         return new ResponseEntity(response, HttpStatus.OK);
     }
 
@@ -62,7 +71,8 @@ public class VisitRestController {
                     content = @Content)})
     @GetMapping("/{token}/cancel")
     public ResponseEntity cancelVisit(@PathVariable("token") String token) {
-        ResponseMessageDto response = new ResponseMessageDto().setMessage(service.checkingTokenToCanceledVisit(token));
+        visitService.checkingTokenToCanceledVisit(token);
+        ResponseMessageDto response = new ResponseMessageDto("the visit has been canceled");
         return new ResponseEntity(response, HttpStatus.OK);
     }
 
@@ -75,8 +85,11 @@ public class VisitRestController {
                     " or invalid dates",
                     content = @Content)})
     @PostMapping("/find")
-    public ResponseEntity findTopNearestVisits(@Valid @RequestBody ModelToFindNearestVisit modelToFindNearestVisit) {
-        List<NearestVisitDto> response = service.findNearestVisits(modelToFindNearestVisit);
+    public ResponseEntity findTopNearestVisits(@Valid @RequestBody FindVisitsRequest findVisitsRequest) {
+        List<NearestVisitDto> response = visitService.findNearestVisits(findVisitsRequest)
+                .stream()
+                .map(nearestVisitResponse -> modelMapper.map(nearestVisitResponse, NearestVisitDto.class))
+                .collect(Collectors.toList());
         return new ResponseEntity(response, HttpStatus.OK);
     }
 }

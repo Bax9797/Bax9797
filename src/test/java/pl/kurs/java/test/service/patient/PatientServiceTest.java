@@ -3,7 +3,7 @@ package pl.kurs.java.test.service.patient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.kurs.java.test.entity.Patient;
-import pl.kurs.java.test.model.ModelPatientToAdd;
+import pl.kurs.java.test.model.CreatePatientRequest;
 import pl.kurs.java.test.repository.PatientRepository;
 
 import java.util.Optional;
@@ -36,26 +36,15 @@ class PatientServiceTest {
 
     @Test
     void saveNewPatientTest() {
-        ModelPatientToAdd model = new ModelPatientToAdd("test1", "pies", "pitbull", 2,
+        CreatePatientRequest model = new CreatePatientRequest("test1", "pies", "pitbull", 2,
                 "test1", "test1", "test2022@gmail.com");
         when(patientRepository.saveAndFlush(any(Patient.class)))
                 .thenAnswer(i -> i.getArguments()[0]);
         Patient given = patientService.saveNewPatient(model);
         Patient expected = new Patient("test1", "pies", "pitbull", 2,
                 "test1", "test1", "test2022@gmail.com", true);
-        assertEquals(given, expected);
-    }
-
-    @Test
-    void validationOfTheEnteredParameterDataTest() {
-        ModelPatientToAdd model = new ModelPatientToAdd("test1", "pies", "pitbull", 2,
-                "test1", "test1", "test2022@gmail.com");
-        when(patientRepository.saveAndFlush(any(Patient.class)))
-                .thenAnswer(i -> i.getArguments()[0]);
-        Patient given = patientService.saveNewPatient(model);
-        Patient expected = new Patient().setAnimalName("test1").setAnimalSpecies("pies").setAnimalBreed("pitbull").setAge(2)
-                .setOwnerName("test1").setOwnerSurname("test1").setEmail("test2022@gmail.com").setCurrentCustomer(true);
-        assertEquals(given, expected);
+        assertEquals(given.getAnimalName(), expected.getAnimalName());
+        assertEquals(given.getEmail(),expected.getEmail());
     }
 
     @Test

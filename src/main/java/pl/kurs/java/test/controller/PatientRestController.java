@@ -15,8 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.kurs.java.test.dto.PatientDto;
 import pl.kurs.java.test.dto.ResponseMessageDto;
-import pl.kurs.java.test.exception.patient.PatientNotFoundException;
-import pl.kurs.java.test.model.ModelPatientToAdd;
+import pl.kurs.java.test.model.CreatePatientRequest;
 import pl.kurs.java.test.service.patient.PatientService;
 
 import javax.validation.Valid;
@@ -25,7 +24,6 @@ import javax.validation.Valid;
 @RequestMapping("/patient")
 @RequiredArgsConstructor
 public class PatientRestController {
-
     private final PatientService patientService;
     private final ModelMapper modelMapper;
 
@@ -33,15 +31,15 @@ public class PatientRestController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "response message: add patient successful",
                     content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ModelPatientToAdd.class))}),
+                            schema = @Schema(implementation = CreatePatientRequest.class))}),
             @ApiResponse(responseCode = "400", description = "potential error: all fields must be not empty or null. "
                     + "Animal age can not be less than 0." +
                     " Email has to be unique or should be a valid",
                     content = @Content)})
-    @PostMapping("/add")
-    public ResponseEntity addPatient(@Valid @RequestBody ModelPatientToAdd modelPatientToAdd) {
+    @PostMapping
+    public ResponseEntity addPatient(@Valid @RequestBody CreatePatientRequest createPatientRequest) {
         PatientDto response = modelMapper
-                .map(patientService.saveNewPatient(modelPatientToAdd), PatientDto.class);
+                .map(patientService.saveNewPatient(createPatientRequest), PatientDto.class);
         return new ResponseEntity(response, HttpStatus.CREATED);
     }
 
@@ -66,20 +64,18 @@ public class PatientRestController {
                     content = @Content)})
     @PutMapping("/{id}/remove")
     public ResponseEntity removeFromTheListOfCurrentPatients(@PathVariable("id") int id) {
-        if (!patientService.existsById(id)) {
-            throw new PatientNotFoundException("User Not Found with id : " + id);
-        } else {
-            ResponseMessageDto response = new ResponseMessageDto().setMessage(patientService.removePatient(id));
-            return new ResponseEntity(response, HttpStatus.OK);
-        }
+        patientService.removePatient(id);
+        ResponseMessageDto response = new ResponseMessageDto("changed status of given patient id, this client is no longer our patient");
+        return new ResponseEntity(response, HttpStatus.OK);
     }
 
     @Operation(summary = "Page wit Patient")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "response message: look on page with Patient")})
-    @GetMapping("/page")
-    public ResponseEntity pageOfPatient(@PageableDefault(value = 2, page = 0) Pageable pageable) {
-        Page<PatientDto> response = patientService.findAllToPage(pageable);
+    @GetMapping
+    public ResponseEntity pageOfPatient(@PageableDefault Pageable pageable) {
+        Page<PatientDto> response = patientService.findAllToPage(pageable)
+                .map(patient -> modelMapper.map(patient, PatientDto.class));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

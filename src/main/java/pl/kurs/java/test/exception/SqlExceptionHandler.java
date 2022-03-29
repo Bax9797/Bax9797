@@ -1,18 +1,19 @@
-package pl.kurs.java.test.exception.doctor.advice;
+package pl.kurs.java.test.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import pl.kurs.java.test.exception.doctor.DoctorNotFoundException;
 import pl.kurs.java.test.exception.errors.ErrorMessageResponse;
 
-@ControllerAdvice
-public class DoctorNotFoundExceptionHandler {
+import java.sql.SQLException;
 
-    @ExceptionHandler(value = DoctorNotFoundException.class)
-    public ResponseEntity<Object> handlerUserNotFoundException(DoctorNotFoundException exception) {
+@ControllerAdvice
+public class SqlExceptionHandler {
+
+    @ExceptionHandler(SQLException.class)
+    public ResponseEntity<?> SqlExceptionHandler(SQLException exception) {
         ErrorMessageResponse response = new ErrorMessageResponse().setErrorMessage(exception.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }

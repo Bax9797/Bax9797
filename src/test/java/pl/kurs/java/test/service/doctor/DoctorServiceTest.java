@@ -3,7 +3,7 @@ package pl.kurs.java.test.service.doctor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.kurs.java.test.entity.Doctor;
-import pl.kurs.java.test.model.ModelDoctorToAdd;
+import pl.kurs.java.test.model.CreateDoctorRequest;
 import pl.kurs.java.test.repository.DoctorRepository;
 
 import java.util.Optional;
@@ -35,26 +35,15 @@ class DoctorServiceTest {
 
     @Test
     void saveNewDoctorTest() {
-        ModelDoctorToAdd modelDoctorToAdd = new ModelDoctorToAdd("Test1", "Test1",
+        CreateDoctorRequest createDoctorRequest = new CreateDoctorRequest("Test1", "Test1",
                 "Kardiolog", "Psy", 100.00, "Test1");
         when(doctorRepository.saveAndFlush(any(Doctor.class)))
                 .thenAnswer(i -> i.getArguments()[0]);
-        Doctor given = doctorService.saveNewDoctor(modelDoctorToAdd);
+        Doctor given = doctorService.saveNewDoctor(createDoctorRequest);
         Doctor expected = new Doctor().setName("Test1").setSurname("Test1").setMedicalSpecialization("Kardiolog")
                 .setAnimalSpecialization("Psy").setRate(100.00).setNip("Test1").setHired(true);
-        assertEquals(given, expected);
-    }
-
-    @Test
-    void validationOfTheEnteredParameterDataTest() {
-        ModelDoctorToAdd modelDoctorToAdd = new ModelDoctorToAdd("Test1", "Test1",
-                "Kardiolog", "Psy", 100.00, "Test1");
-        when(doctorRepository.saveAndFlush(any(Doctor.class)))
-                .thenAnswer(i -> i.getArguments()[0]);
-        Doctor given = doctorService.saveNewDoctor(modelDoctorToAdd);
-        Doctor expected = new Doctor().setName("Test1").setSurname("Test1").setMedicalSpecialization("Kardiolog")
-                .setAnimalSpecialization("Psy").setRate(100.00).setNip("Test1").setHired(true);
-        assertEquals(given, expected);
+        assertEquals(given.getName(), expected.getName());
+        assertEquals(given.getNip(), expected.getNip());
     }
 
     @Test

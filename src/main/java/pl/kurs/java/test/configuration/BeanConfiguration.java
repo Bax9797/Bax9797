@@ -2,9 +2,10 @@ package pl.kurs.java.test.configuration;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@org.springframework.context.annotation.Configuration
-public class MyConfiguration {
+@Configuration
+public class BeanConfiguration {
 
     @Bean
     public ModelMapper modelMapper() {

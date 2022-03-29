@@ -8,25 +8,37 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
+import pl.kurs.java.test.dto.VisitIdDto;
+import pl.kurs.java.test.entity.Doctor;
+import pl.kurs.java.test.entity.Patient;
+import pl.kurs.java.test.entity.Token;
+import pl.kurs.java.test.entity.Visit;
 import pl.kurs.java.test.mail.EmailService;
-import pl.kurs.java.test.model.ModelToFindNearestVisit;
-import pl.kurs.java.test.model.ModelVisitToAdd;
+import pl.kurs.java.test.model.CreateDoctorRequest;
+import pl.kurs.java.test.model.CreatePatientRequest;
+import pl.kurs.java.test.model.FindVisitsRequest;
+import pl.kurs.java.test.model.VisitToAddRequest;
+import pl.kurs.java.test.repository.DoctorRepository;
+import pl.kurs.java.test.repository.PatientRepository;
+import pl.kurs.java.test.repository.TokenRepository;
+import pl.kurs.java.test.repository.VisitRepository;
+import pl.kurs.java.test.service.visit.VisitService;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.Month;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @RunWith(SpringRunner.class)
@@ -35,8 +47,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @AutoConfigureMockMvc
 class VisitRestControllerTestIT {
 
-    @LocalServerPort
-    private int serverPort;
+
     @Autowired
     MockMvc mockMvc;
     @Autowired
@@ -45,156 +56,243 @@ class VisitRestControllerTestIT {
     private ObjectMapper objectMapper;
     @MockBean
     private EmailService emailService;
-
-    private URI createServerAddress() throws URISyntaxException {
-        return new URI("http://localhost:" + serverPort + "/visit");
-    }
+    @Autowired
+    private VisitRepository visitRepository;
+    private VisitService visitService;
+    @Autowired
+    private PatientRepository patientRepository;
+    @Autowired
+    private DoctorRepository doctorRepository;
+    @Autowired
+    private TokenRepository tokenGeneratorRepository;
 
     @BeforeEach
     void setUp() {
+        visitService = new VisitService(
+                visitRepository, patientRepository, doctorRepository, tokenGeneratorRepository, emailService);
         mockMvc = webAppContextSetup(webApplicationContext).build();
+    }
+
+    @Test
+    void testFullApplication() throws Exception {
+        CreatePatientRequest underTestPatientRequest = new CreatePatientRequest("Kapsel", "Pies", "Pitbull",
+                4, "Michał", "Piec", "mkrolak997@gmail.com");
+        String contentPatient = objectMapper.writeValueAsString(underTestPatientRequest);
+        MvcResult mvcResultPatient = mockMvc.perform(post("/patient")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contentPatient)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.animalName").value("Kapsel"))
+                .andExpect(jsonPath("$.animalSpecies").value("Pies"))
+                .andExpect(jsonPath("$.animalBreed").value("Pitbull"))
+                .andExpect(jsonPath("$.age").value("4"))
+                .andExpect(jsonPath("$.ownerName").value("Michał"))
+                .andExpect(jsonPath("$.ownerSurname").value("Piec"))
+                .andExpect(jsonPath("$.email").value("mkrolak997@gmail.com"))
+                .andReturn();
+
+        CreateDoctorRequest underTestDoctorRequest = new CreateDoctorRequest("Michal", "Kot", "Kardiolog",
+                "Psy", 100.0, "3523532532");
+        String contentDoctor = objectMapper.writeValueAsString(underTestDoctorRequest);
+        MvcResult mvcResultDoctor = mockMvc.perform(post("/doctor")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contentDoctor)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Michal"))
+                .andExpect(jsonPath("$.surname").value("Kot"))
+                .andExpect(jsonPath("$.medicalSpecialization").value("Kardiolog"))
+                .andExpect(jsonPath("$.animalSpecialization").value("Psy"))
+                .andExpect(jsonPath("$.rate").value("100.0"))
+                .andExpect(jsonPath("$.nip").value("3523532532"))
+                .andReturn();
+
+        Doctor doctor = objectMapper.readValue(mvcResultDoctor.getResponse().getContentAsString(), Doctor.class);
+        Patient patient = objectMapper.readValue(mvcResultPatient.getResponse().getContentAsString(), Patient.class);
+
+        doNothing().when(emailService).sendMessage(any(), any());
+        VisitToAddRequest underTestVisit = new VisitToAddRequest(doctor.getId(), patient.getId(),
+                LocalDateTime.now().plusYears(1L));
+        String contentVisit = objectMapper.writeValueAsString(underTestVisit);
+        MvcResult mvcResultVisit = mockMvc.perform(post("/visit/booked")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contentVisit)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andReturn();
+
+        VisitIdDto visitIdDto = objectMapper.readValue(mvcResultVisit.getResponse().getContentAsString(), VisitIdDto.class);
+        Visit visit = visitService.getVisitById(visitIdDto.getId());
+        Token token = visitService.getTokenById(visit.getTokenId());
+
+        String contentToken = token.getCode();
+        mockMvc.perform(get("/visit/" + contentToken + "/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contentToken)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("visit confirmed!"));
     }
 
     @Test
     void shouldGetVisit() throws Exception {
         doNothing().when(emailService).sendMessage(any(), any());
-        ModelVisitToAdd underTest = new ModelVisitToAdd(1, 1,
-                LocalDateTime.of(2022, Month.APRIL, 3, 6, 00, 00));
+        VisitToAddRequest underTest = new VisitToAddRequest(1, 1,
+                LocalDateTime.now().plusYears(1L));
         String content = objectMapper.writeValueAsString(underTest);
-        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/booked")
+        mockMvc.perform(post("/visit/booked")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
-                .andExpect(MockMvcResultMatchers.content().string("3"));
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").isNotEmpty());
     }
 
     @Test
-    void shouldGetVisitAndThrowsNotFoundDoctor() throws Exception {
+    void shouldNotGetVisitAndThrowsNotFoundDoctor() throws Exception {
         doNothing().when(emailService).sendMessage(any(), any());
-        ModelVisitToAdd underTest = new ModelVisitToAdd(1500, 1,
-                LocalDateTime.of(2022, Month.APRIL, 3, 6, 00, 00));
+        VisitToAddRequest underTest = new VisitToAddRequest(1500, 1,
+                LocalDateTime.now().plusYears(1L));
         String content = objectMapper.writeValueAsString(underTest);
-        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/booked")
+       mockMvc.perform(post("/visit/booked")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string(
-                        "Doctor Not Found with id : 1500"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("doctorId"))
+               .andExpect(jsonPath("$.fieldErrors[0].message").value("Doctor not found with given id"));
     }
 
     @Test
-    void shouldGetVisitAndThrowsNotFoundPatient() throws Exception {
+    void shouldNotGetVisitAndThrowsNotFoundPatient() throws Exception {
         doNothing().when(emailService).sendMessage(any(), any());
-        ModelVisitToAdd underTest = new ModelVisitToAdd(1, 1500,
-                LocalDateTime.of(2022, Month.APRIL, 3, 6, 00, 00));
+        VisitToAddRequest underTest = new VisitToAddRequest(2, 1500,
+                LocalDateTime.now().plusYears(1L));
         String content = objectMapper.writeValueAsString(underTest);
-        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/booked")
+        mockMvc.perform(post("/visit/booked")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string(
-                        "Patient Not Found with id : 1500"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("patientId"))
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("Patient not found with given id"));
     }
 
     @Test
-    void shouldGetVisitAndThrowsValidDate() throws Exception {
+    void shouldNotGetVisitAndThrowsDoctorIsNotAvailable() throws Exception {
         doNothing().when(emailService).sendMessage(any(), any());
-        ModelVisitToAdd underTest = new ModelVisitToAdd(1, 1,
-                LocalDateTime.of(2017, Month.APRIL, 3, 6, 00, 00));
+        VisitToAddRequest underTest = new VisitToAddRequest(1, 1500,
+                LocalDateTime.now().plusYears(1L));
         String content = objectMapper.writeValueAsString(underTest);
-        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/booked")
+        mockMvc.perform(post("/visit/booked")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string(
-                        "{\"message\":\"Validation Failed\",\"details\":[\" date must be in the future\"]}"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("patientId"))
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("Patient not found with given id"));
+    }
+
+    @Test
+    void shouldNotGetVisitAndThrowsValidDate() throws Exception {
+        doNothing().when(emailService).sendMessage(any(), any());
+        VisitToAddRequest underTest = new VisitToAddRequest(1, 1,
+                LocalDateTime.now().minusYears(1L));
+        String content = objectMapper.writeValueAsString(underTest);
+        mockMvc.perform(post("/visit/booked")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("date"))
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("must be a future date"));
     }
 
     @Test
     void shouldConfirmVisit() throws Exception {
         String content = objectMapper.writeValueAsString("token12345");
-        mockMvc.perform(MockMvcRequestBuilders.get(createServerAddress() + "/token12345/confirm")
+        mockMvc.perform(get("/visit/token12345/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
-                .andExpect(MockMvcResultMatchers.content().string("{\"message\":\"visit confirmed!\"}"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("visit confirmed!"));
     }
 
     @Test
     void shouldNotConfirmVisitAndThrowsTokenNotFoundException() throws Exception {
         String content = objectMapper.writeValueAsString("tokenNotFound");
-        mockMvc.perform(MockMvcRequestBuilders.get(createServerAddress() + "/tokenNotFound/confirm")
+        mockMvc.perform(get("/visit/tokenNotFound/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string("There is no Token with the given parameters"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorMessage").value("There is no Token with the given parameters"));
     }
 
     @Test
     void shouldCancelVisit() throws Exception {
         String content = objectMapper.writeValueAsString("token1");
-        mockMvc.perform(MockMvcRequestBuilders.get(createServerAddress() + "/token1/cancel")
+        mockMvc.perform(get("/visit/token1/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
-                .andExpect(MockMvcResultMatchers.content().string("{\"message\":\"the visit has been canceled\"}"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("the visit has been canceled"));
     }
 
     @Test
     void shouldNotCancelVisitAndThrowsTokenNotFoundException() throws Exception {
         String content = objectMapper.writeValueAsString("tokenNotFound");
-        mockMvc.perform(MockMvcRequestBuilders.get(createServerAddress() + "/tokenNotFound/confirm")
+        mockMvc.perform(get("/visit/tokenNotFound/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string("There is no Token with the given parameters"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorMessage").value("There is no Token with the given parameters"));
     }
 
     @Test
     void shouldFindTopNearestVisits() throws Exception {
-        ModelToFindNearestVisit underTest = new ModelToFindNearestVisit("kardiolog", "pies"
+        FindVisitsRequest underTest = new FindVisitsRequest("kardiolog", "pies"
                 , LocalDateTime.now().plusHours(1L), LocalDateTime.now().plusHours(5L));
         String content = objectMapper.writeValueAsString(underTest);
-        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/find")
+        mockMvc.perform(post("/visit/find")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isNotEmpty());
     }
 
     @Test
     void shouldNotFindTopNearestVisitsAndThrowsNotFoundDoctorWithTheGivenParametersOfSpecializationsException() throws Exception {
-        ModelToFindNearestVisit underTest = new ModelToFindNearestVisit("Test", "Test"
+        FindVisitsRequest underTest = new FindVisitsRequest("Test", "Test"
                 , LocalDateTime.now().plusHours(1L), LocalDateTime.now().plusHours(2L));
         String content = objectMapper.writeValueAsString(underTest);
-        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/find")
+        mockMvc.perform(post("/visit/find")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string(
-                        "There is no doctor with the given parameters of Specialization "));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorMessage").value(
+                        "There is no doctor with the given parameters of Specialization"));
     }
 
     @Test
     void shouldNotFindTopNearestVisitsAndThrowsNotFoundFreeVisitAtGivenTimeException() throws Exception {
-        ModelToFindNearestVisit underTest = new ModelToFindNearestVisit("Kardiolog", "Pies"
-                , LocalDateTime.of(2022, Month.JULY, 15, 16, 00, 00), LocalDateTime.of(2022, Month.JULY, 15, 16, 00, 00));
+        FindVisitsRequest underTest = new FindVisitsRequest("Kardiolog", "Pies"
+                , LocalDateTime.of(2022, Month.JULY, 15, 16, 00, 00),
+                LocalDateTime.of(2022, Month.JULY, 15, 16, 00, 00));
         String content = objectMapper.writeValueAsString(underTest);
-        mockMvc.perform(MockMvcRequestBuilders.post(createServerAddress() + "/find")
+        mockMvc.perform(post("/visit/find")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
-                .andExpect(MockMvcResultMatchers.content().string(
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorMessage").value(
                         "There is no free visit at given time, please change the time slot for the meeting"));
     }
 }
