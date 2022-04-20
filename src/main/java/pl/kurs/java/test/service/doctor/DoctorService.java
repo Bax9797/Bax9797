@@ -5,9 +5,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.kurs.java.test.entity.Doctor;
-import pl.kurs.java.test.exception.doctor.DoctorNotFoundException;
+import pl.kurs.java.test.exception.Entity.EntityNotFoundException;
 import pl.kurs.java.test.model.CreateDoctorRequest;
 import pl.kurs.java.test.repository.DoctorRepository;
+
+import javax.transaction.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -15,9 +17,10 @@ public class DoctorService {
 
     private final DoctorRepository repository;
 
+    @Transactional
     public Doctor findById(int id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new DoctorNotFoundException(id));
+        return repository.findByIdForRead(id)
+                .orElseThrow(() -> new EntityNotFoundException("doctor", id));
     }
 
     public Doctor saveNewDoctor(CreateDoctorRequest createDoctorRequest) {
@@ -37,8 +40,9 @@ public class DoctorService {
         return repository.existsById(id);
     }
 
+    @Transactional
     public void dismiss(int id) {
-        Doctor doctor = findById(id);
+        Doctor doctor = repository.findByIdForWrite(id).orElseThrow(() -> new EntityNotFoundException("doctor", id));
         repository.updateStatusOfDoctorHired(doctor.getId());
     }
 

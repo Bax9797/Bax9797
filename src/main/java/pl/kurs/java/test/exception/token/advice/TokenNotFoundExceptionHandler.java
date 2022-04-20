@@ -12,7 +12,9 @@ public class TokenNotFoundExceptionHandler {
 
     @ExceptionHandler(value = TokenNotFoundException.class)
     public ResponseEntity<Object> handlerTokenNotFoundException(TokenNotFoundException exception) {
-        ErrorMessageResponse response = new ErrorMessageResponse().setErrorMessage(exception.getMessage());
+        ErrorMessageResponse response = new ErrorMessageResponse()
+                .setEntityName("Token")
+                .setCode(exception.getMessage());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 }

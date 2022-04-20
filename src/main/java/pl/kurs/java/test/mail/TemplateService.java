@@ -17,19 +17,16 @@ import java.net.URL;
 public class TemplateService {
     private final Configuration configuration;
 
-
     public String fillTemplate(String templateName, Object map) throws IOException, TemplateException {
         URL resource = getClass().getClassLoader().getResource("templates/" + templateName + ".ftl");
         Reader reader = new InputStreamReader(resource.openStream());
         return renderTemplate(templateName, map, reader);
     }
 
-
     public String renderTemplate(String templateName, Object map, Reader reader) throws IOException, TemplateException {
         Template template = new Template(templateName, reader, configuration);
         return processTemplate(template, map);
     }
-
 
     private String processTemplate(Template template, Object map) throws TemplateException, IOException {
         StringWriter writer = new StringWriter();

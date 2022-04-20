@@ -57,7 +57,7 @@ public class VisitRestController {
     @GetMapping("/{token}/confirm")
     public ResponseEntity confirmVisit(@PathVariable("token") String token) {
         visitService.checkingTokenToConfirmVisit(token);
-        ResponseMessageDto response = new ResponseMessageDto("visit confirmed!");
+        ResponseMessageDto response = new ResponseMessageDto("confirmed");
         return new ResponseEntity(response, HttpStatus.OK);
     }
 
@@ -72,7 +72,7 @@ public class VisitRestController {
     @GetMapping("/{token}/cancel")
     public ResponseEntity cancelVisit(@PathVariable("token") String token) {
         visitService.checkingTokenToCanceledVisit(token);
-        ResponseMessageDto response = new ResponseMessageDto("the visit has been canceled");
+        ResponseMessageDto response = new ResponseMessageDto("canceled");
         return new ResponseEntity(response, HttpStatus.OK);
     }
 

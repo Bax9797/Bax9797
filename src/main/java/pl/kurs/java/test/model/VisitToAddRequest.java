@@ -4,8 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import pl.kurs.java.test.annotation.DoctorIdNotExisting;
-import pl.kurs.java.test.annotation.PatientIdNotExisting;
+import pl.kurs.java.test.annotation.EntityExists;
+import pl.kurs.java.test.entity.Doctor;
+import pl.kurs.java.test.entity.Patient;
 
 import javax.validation.constraints.Future;
 import java.time.LocalDateTime;
@@ -16,9 +17,9 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 public class VisitToAddRequest {
 
-    @DoctorIdNotExisting
+    @EntityExists(type = Doctor.class)
     private int doctorId;
-    @PatientIdNotExisting
+    @EntityExists(type = Patient.class)
     private int patientId;
     @Future
     private LocalDateTime date;

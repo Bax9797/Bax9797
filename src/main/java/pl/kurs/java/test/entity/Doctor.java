@@ -5,12 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
-import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import javax.websocket.server.PathParam;
 import java.util.Set;
 
 @Getter
@@ -34,11 +32,12 @@ public class Doctor {
     @Column(unique = true)
     private String nip;
     private boolean hired;
+    @Version
+    private int version;
     @OneToMany(mappedBy = "doctor",
             cascade = CascadeType.ALL)
     private Set<Visit> visits;
-    @Version
-    private int version;
+
 
     public Doctor(String name, String surname, String medicalSpecialization, String animalSpecialization, double rate, String nip, boolean hired) {
         this.name = name;

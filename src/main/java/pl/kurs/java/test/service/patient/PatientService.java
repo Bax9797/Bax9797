@@ -5,18 +5,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.kurs.java.test.entity.Patient;
-import pl.kurs.java.test.exception.patient.PatientNotFoundException;
+import pl.kurs.java.test.exception.Entity.EntityNotFoundException;
 import pl.kurs.java.test.model.CreatePatientRequest;
 import pl.kurs.java.test.repository.PatientRepository;
+
+import javax.transaction.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class PatientService {
     private final PatientRepository repository;
 
+    @Transactional()
     public Patient findById(int id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new PatientNotFoundException(id));
+        return repository.findByIdForRead(id)
+                .orElseThrow(() -> new EntityNotFoundException("patient", id));
     }
 
     public Patient saveNewPatient(CreatePatientRequest createPatientRequest) {
@@ -37,8 +40,9 @@ public class PatientService {
         return repository.existsById(id);
     }
 
+    @Transactional
     public void removePatient(int id) {
-        Patient patient = findById(id);
+        Patient patient = repository.findByIdForWrite(id).orElseThrow(() -> new EntityNotFoundException("patient", id));
         repository.updateStatusOfPatient(patient.getId());
     }
 

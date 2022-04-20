@@ -33,6 +33,7 @@ class VisitServiceTest {
         doctorRepository = mock(DoctorRepository.class);
         tokenGeneratorRepository = mock(TokenRepository.class);
         emailService = mock(EmailService.class);
+
         visitService = new VisitService(
                 visitRepository, patientRepository, doctorRepository, tokenGeneratorRepository, emailService);
     }

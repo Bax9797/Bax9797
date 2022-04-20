@@ -66,7 +66,7 @@ public class DoctorRestController {
     public ResponseEntity dismissTheEmployee(@PathVariable("id") int id) {
         doctorService.dismiss(id);
         ResponseMessageDto response =
-                new ResponseMessageDto("changed status of given doctor id, this doctor will be not able to handle any visits");
+                new ResponseMessageDto("dismiss");
         return new ResponseEntity(response, HttpStatus.OK);
     }
 

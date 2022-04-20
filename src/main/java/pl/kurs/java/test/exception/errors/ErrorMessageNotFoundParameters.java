@@ -3,9 +3,10 @@ package pl.kurs.java.test.exception.errors;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-@Data
 @Accessors(chain = true)
-public class ErrorMessageResponse {
+@Data
+public class ErrorMessageNotFoundParameters {
     private String code;
-    private String entityName;
+    private String medicalSpecializationError;
+    private String animalSpecializationError;
 }

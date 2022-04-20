@@ -47,7 +47,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @AutoConfigureMockMvc
 class VisitRestControllerTestIT {
 
-
     @Autowired
     MockMvc mockMvc;
     @Autowired
@@ -65,6 +64,7 @@ class VisitRestControllerTestIT {
     private DoctorRepository doctorRepository;
     @Autowired
     private TokenRepository tokenGeneratorRepository;
+
 
     @BeforeEach
     void setUp() {
@@ -92,20 +92,20 @@ class VisitRestControllerTestIT {
                 .andExpect(jsonPath("$.email").value("mkrolak997@gmail.com"))
                 .andReturn();
 
-        CreateDoctorRequest underTestDoctorRequest = new CreateDoctorRequest("Michal", "Kot", "Kardiolog",
-                "Psy", 100.0, "3523532532");
+        CreateDoctorRequest underTestDoctorRequest = new CreateDoctorRequest("Ewa", "Pionek", "Kardiolog",
+                "Psy", 100.0, "35235325325232");
         String contentDoctor = objectMapper.writeValueAsString(underTestDoctorRequest);
         MvcResult mvcResultDoctor = mockMvc.perform(post("/doctor")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(contentDoctor)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value("Michal"))
-                .andExpect(jsonPath("$.surname").value("Kot"))
+                .andExpect(jsonPath("$.name").value("Ewa"))
+                .andExpect(jsonPath("$.surname").value("Pionek"))
                 .andExpect(jsonPath("$.medicalSpecialization").value("Kardiolog"))
                 .andExpect(jsonPath("$.animalSpecialization").value("Psy"))
                 .andExpect(jsonPath("$.rate").value("100.0"))
-                .andExpect(jsonPath("$.nip").value("3523532532"))
+                .andExpect(jsonPath("$.nip").value("35235325325232"))
                 .andReturn();
 
         Doctor doctor = objectMapper.readValue(mvcResultDoctor.getResponse().getContentAsString(), Doctor.class);
@@ -133,7 +133,7 @@ class VisitRestControllerTestIT {
                         .content(contentToken)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("visit confirmed!"));
+                .andExpect(jsonPath("$.message").value("confirmed"));
     }
 
     @Test
@@ -156,19 +156,20 @@ class VisitRestControllerTestIT {
         VisitToAddRequest underTest = new VisitToAddRequest(1500, 1,
                 LocalDateTime.now().plusYears(1L));
         String content = objectMapper.writeValueAsString(underTest);
-       mockMvc.perform(post("/visit/booked")
+        mockMvc.perform(post("/visit/booked")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("METHOD_ARGUMENT_NOT_VALID_EXCEPTION"))
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("doctorId"))
-               .andExpect(jsonPath("$.fieldErrors[0].message").value("Doctor not found with given id"));
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("ERROR_ENTITY_EXISTS"));
     }
 
     @Test
     void shouldNotGetVisitAndThrowsNotFoundPatient() throws Exception {
         doNothing().when(emailService).sendMessage(any(), any());
-        VisitToAddRequest underTest = new VisitToAddRequest(2, 1500,
+        VisitToAddRequest underTest = new VisitToAddRequest(1, 1500,
                 LocalDateTime.now().plusYears(1L));
         String content = objectMapper.writeValueAsString(underTest);
         mockMvc.perform(post("/visit/booked")
@@ -176,8 +177,9 @@ class VisitRestControllerTestIT {
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("METHOD_ARGUMENT_NOT_VALID_EXCEPTION"))
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("patientId"))
-                .andExpect(jsonPath("$.fieldErrors[0].message").value("Patient not found with given id"));
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("ERROR_ENTITY_EXISTS"));
     }
 
     @Test
@@ -192,7 +194,7 @@ class VisitRestControllerTestIT {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("patientId"))
-                .andExpect(jsonPath("$.fieldErrors[0].message").value("Patient not found with given id"));
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("ERROR_ENTITY_EXISTS"));
     }
 
     @Test
@@ -218,7 +220,7 @@ class VisitRestControllerTestIT {
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("visit confirmed!"));
+                .andExpect(jsonPath("$.message").value("confirmed"));
     }
 
     @Test
@@ -229,7 +231,8 @@ class VisitRestControllerTestIT {
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorMessage").value("There is no Token with the given parameters"));
+                .andExpect(jsonPath("$.entityName").value("Token"))
+                .andExpect(jsonPath("$.code").value("TOKEN_NOT_FOUND_EXCEPTION"));
     }
 
     @Test
@@ -240,7 +243,7 @@ class VisitRestControllerTestIT {
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("the visit has been canceled"));
+                .andExpect(jsonPath("$.message").value("canceled"));
     }
 
     @Test
@@ -251,7 +254,8 @@ class VisitRestControllerTestIT {
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorMessage").value("There is no Token with the given parameters"));
+                .andExpect(jsonPath("$.entityName").value("Token"))
+                .andExpect(jsonPath("$.code").value("TOKEN_NOT_FOUND_EXCEPTION"));
     }
 
     @Test
@@ -277,22 +281,24 @@ class VisitRestControllerTestIT {
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorMessage").value(
-                        "There is no doctor with the given parameters of Specialization"));
+                .andExpect(jsonPath("$.code").value("NOT_FOUND_WITH_GIVEN_PARAMETERS"))
+                .andExpect(jsonPath("$.medicalSpecializationError").value("Test"))
+                .andExpect(jsonPath("$.animalSpecializationError").value("Test"));
     }
 
     @Test
     void shouldNotFindTopNearestVisitsAndThrowsNotFoundFreeVisitAtGivenTimeException() throws Exception {
-        FindVisitsRequest underTest = new FindVisitsRequest("Kardiolog", "Pies"
-                , LocalDateTime.of(2022, Month.JULY, 15, 16, 00, 00),
-                LocalDateTime.of(2022, Month.JULY, 15, 16, 00, 00));
+        FindVisitsRequest underTest = new FindVisitsRequest("neurolog", "kot"
+                , LocalDateTime.of(2022, Month.JULY, 15, 16, 15, 00),
+                LocalDateTime.of(2022, Month.JULY, 15, 17, 15, 00));
         String content = objectMapper.writeValueAsString(underTest);
         mockMvc.perform(post("/visit/find")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errorMessage").value(
-                        "There is no free visit at given time, please change the time slot for the meeting"));
+                .andExpect(jsonPath("$.code").value("NOT_FOUND_FREE_VISIT_AT_GIVEN_TIME_EXCEPTION"))
+                .andExpect(jsonPath("$.errorDateFrom").value("2022-07-15T16:15"))
+                .andExpect(jsonPath("$.errorDateTo").value("2022-07-15T17:15"));
     }
 }

@@ -5,7 +5,8 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class ErrorMessageResponse {
+public class ErrorNotFoundFreeVisitAtGivenTimeResponse {
     private String code;
-    private String entityName;
+    private String errorDateFrom;
+    private String errorDateTo;
 }

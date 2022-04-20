@@ -25,7 +25,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @AutoConfigureMockMvc
 class PatientRestControllerIT {
 
-
     @Autowired
     MockMvc mockMvc;
     @Autowired
@@ -60,7 +59,7 @@ class PatientRestControllerIT {
     @Test
     void shouldNotAddPatientAndThrowDuplicateEmailException() throws Exception {
         CreatePatientRequest underTest = new CreatePatientRequest("Kapsel", "Pies", "Pitbull",
-                4, "Michał", "Piec", "mts@gmail.com");
+                4, "Michał", "Piec", "15@gmail.com");
         String content = objectMapper.writeValueAsString(underTest);
         mockMvc.perform(post("/patient")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -68,7 +67,7 @@ class PatientRestControllerIT {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("email"))
-                .andExpect(jsonPath("$.fieldErrors[0].message").value("Email is already taken"));
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("ERROR_ENTITY_EXISTS"));
     }
 
     @Test
@@ -115,17 +114,19 @@ class PatientRestControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorMessage").value("500"));
+                .andExpect(jsonPath("$.errorCode").value("ENTITY_NOT_FOUND"))
+                .andExpect(jsonPath("$.entityName").value("patient"))
+                .andExpect(jsonPath("$.id").value("500"));
     }
 
     @Test
     void shouldRemoveFromTheListOfCurrentPatients() throws Exception {
-        mockMvc.perform(put("/patient/1/remove")
+        mockMvc.perform(put("/patient/2/remove")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value(
-                        "changed status of given patient id, this client is no longer our patient"));
+                        "delete"));
     }
 
     @Test
@@ -134,7 +135,9 @@ class PatientRestControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorMessage").value("1111"));
+                .andExpect(jsonPath("$.errorCode").value("ENTITY_NOT_FOUND"))
+                .andExpect(jsonPath("$.entityName").value("patient"))
+                .andExpect(jsonPath("$.id").value("1111"));;
     }
 
     @Test

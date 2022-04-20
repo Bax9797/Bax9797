@@ -9,7 +9,6 @@ import javax.validation.ConstraintValidatorContext;
 
 @RequiredArgsConstructor
 public class NipNotExistingValidator implements ConstraintValidator<NipNotExisting, String> {
-
     private final DoctorRepository repository;
 
     @Override

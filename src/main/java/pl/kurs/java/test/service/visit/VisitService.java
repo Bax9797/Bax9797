@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.kurs.java.test.dto.DoctorVisitDto;
 import pl.kurs.java.test.entity.*;
+import pl.kurs.java.test.exception.Entity.EntityNotFoundException;
 import pl.kurs.java.test.exception.date.ValidDateException;
-import pl.kurs.java.test.exception.patient.PatientNotFoundException;
 import pl.kurs.java.test.exception.token.TimeResponseException;
 import pl.kurs.java.test.exception.token.TokenNotFoundException;
 import pl.kurs.java.test.exception.visit.NotFoundDoctorWithTheGivenParametersOfSpecializationsException;
@@ -22,6 +22,7 @@ import pl.kurs.java.test.repository.TokenRepository;
 import pl.kurs.java.test.repository.VisitRepository;
 
 import javax.mail.MessagingException;
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+//@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class VisitService {
 
     private final VisitRepository repository;
@@ -38,6 +40,7 @@ public class VisitService {
     private final TokenRepository tokenGeneratorRepository;
     private final EmailService emailService;
 
+    @Transactional
     public Visit saveVisit(VisitToAddRequest model) throws TemplateException, IOException, MessagingException {
         Token token = new Token()
                 .setCode(UUID.randomUUID().toString())
@@ -54,22 +57,31 @@ public class VisitService {
 
         repository.saveAndFlush(visit);
         Patient patient = patientRepository.findById(model.getPatientId()).
-                orElseThrow(() -> new PatientNotFoundException(model.getPatientId()));
+                orElseThrow(() -> new EntityNotFoundException("Patient", model.getPatientId()));
 
         emailService.sendMessage(patient.getEmail(), emailService.messageContent(token));
         return visit;
     }
 
+    @Transactional
     public int validationOfTheEnteredParameterData(VisitToAddRequest visitToAddRequest) throws TemplateException, IOException, MessagingException {
-        if (!checkIfDoctorIsFreeOnThisDate(visitToAddRequest.getDoctorId(), visitToAddRequest.getDate()) ||
-                !checkIfPatientIsFreeOnThisDate(visitToAddRequest.getPatientId(), visitToAddRequest.getDate()))
-            throw new ValidDateException();
+
+        if (!checkIfDoctorIsFreeOnThisDate(visitToAddRequest.getDoctorId(), visitToAddRequest.getDate()))
+            throw new ValidDateException("Doctor");
+        if (!checkIfPatientIsFreeOnThisDate(visitToAddRequest.getPatientId(), visitToAddRequest.getDate()))
+            throw new ValidDateException("Patient");
         return saveVisit(visitToAddRequest).getId();
     }
 
-    private boolean checkIfPatientIsFreeOnThisDate(int patientId, LocalDateTime dateTime) {
+    @Transactional()
+    public boolean checkIfPatientIsFreeOnThisDate(int patientId, LocalDateTime dateTime) {
         LocalDateTime end = dateTime.plusHours(1L);
+        //LOCKUEJ KRUWA W REPO
         List<Visit> list = repository.findByPatientId(patientId);
+        Patient patient= patientRepository.getById(patientId);
+        for (Visit visit : patient.getVisits()) {
+            //
+        }
         for (Visit visit : list) {
             if (visit.getStartVisit().isEqual(dateTime) && visit.getEndVisit().isEqual(end)) return false;
             if ((dateTime.isAfter(visit.getStartVisit()) && dateTime.isBefore(visit.getEndVisit()))
@@ -80,7 +92,8 @@ public class VisitService {
         return true;
     }
 
-    private Boolean checkIfDoctorIsFreeOnThisDate(int doctorId, LocalDateTime dateTime) {
+    @Transactional
+    public Boolean checkIfDoctorIsFreeOnThisDate(int doctorId, LocalDateTime dateTime) {
         LocalDateTime end = dateTime.plusHours(1L);
         List<Visit> list = repository.findByDoctorId(doctorId);
         for (Visit visit : list) {
@@ -99,7 +112,7 @@ public class VisitService {
         if (!token.getExpireDate().isAfter(LocalDateTime.now()))
             throw new TimeResponseException();
         Visit visitToConfirm = repository.findByTokenId(token.getId()).
-                orElseThrow(VisitNotFoundException::new);
+                orElseThrow(() -> new VisitNotFoundException("Token", token.getId()));
         repository.updateVisitStatus(Status.CONFIRMED, visitToConfirm.getId());
         return repository.existsById(visitToConfirm.getId());
     }
@@ -111,17 +124,19 @@ public class VisitService {
         if (!token.getExpireDate().isAfter(LocalDateTime.now()))
             throw new TimeResponseException();
         Visit visitToCancel = repository.findByTokenId(token.getId()).
-                orElseThrow(VisitNotFoundException::new);
+                orElseThrow(() -> new VisitNotFoundException("Token", token.getId()));
         repository.delete(visitToCancel);
         return repository.existsById(visitToCancel.getId());
     }
 
+    @Transactional
     public List<NearestVisitResponse> findNearestVisits(FindVisitsRequest findVisitsRequest) {
         List<Doctor> list = doctorRepository.findAllByMedicalSpecializationAndAnimalSpecialization(
                 findVisitsRequest.getMedicalSpecialization().toLowerCase(),
                 findVisitsRequest.getAnimalSpecialization().toLowerCase());
         if (list.isEmpty())
-            throw new NotFoundDoctorWithTheGivenParametersOfSpecializationsException();
+            throw new NotFoundDoctorWithTheGivenParametersOfSpecializationsException(findVisitsRequest.getMedicalSpecialization(),
+                    findVisitsRequest.getAnimalSpecialization());
 
         List<NearestVisitResponse> nearestVisitList = new ArrayList<>();
         LocalDateTime time = findVisitsRequest.getDateFrom();
@@ -136,7 +151,7 @@ public class VisitService {
             }
         }
         if (nearestVisitList.isEmpty())
-            throw new NotFoundFreeVisitAtGivenTimeException();
+            throw new NotFoundFreeVisitAtGivenTimeException(findVisitsRequest.getDateFrom(), findVisitsRequest.getDateTo());
         return nearestVisitList;
     }
 
@@ -145,6 +160,6 @@ public class VisitService {
     }
 
     public Visit getVisitById(int id) {
-        return repository.findById(id).orElseThrow(VisitNotFoundException::new);
+        return repository.findById(id).orElseThrow(() -> new VisitNotFoundException("Visit", id));
     }
 }

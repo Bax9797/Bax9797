@@ -12,7 +12,9 @@ public class TimeResponseExceptionHandler {
 
     @ExceptionHandler(value = TimeResponseException.class)
     public ResponseEntity<Object> handlerTokenNotFoundException(TimeResponseException exception) {
-        ErrorMessageResponse response = new ErrorMessageResponse().setErrorMessage(exception.getMessage());
+        ErrorMessageResponse response = new ErrorMessageResponse()
+                .setEntityName("Token")
+                .setCode(exception.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }

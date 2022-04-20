@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateDoctorRequest {
-
     @NotBlank(message = "field name must be not empty")
     @NotNull(message = "field name must be not null")
     private String name;

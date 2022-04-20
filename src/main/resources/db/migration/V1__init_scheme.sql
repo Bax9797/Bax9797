@@ -1,12 +1,12 @@
 create table `medical_staff`( `id` int NOT NULL AUTO_INCREMENT,
-`name` nvarchar(255),
- `surname` nvarchar(255),
- `medical_specialization` nvarchar(255),
- `animal_specialization` nvarchar (255),
- `rate` nvarchar (255),
- `nip` nvarchar(255) UNIQUE,
+`name` nvarchar(255) NOT NULL,
+ `surname` nvarchar(255) NOT NULL,
+ `medical_specialization` nvarchar(255) NOT NULL,
+ `animal_specialization` nvarchar (255) NOT NULL,
+ `rate` nvarchar (255) NOT NULL,
+ `nip` nvarchar(255) NOT NULL UNIQUE,
  `hired` bool,
- `version`int NOT NULL  );
+  `version`int NOT NULL);
 
 create table `patient_list` (
 `id` int NOT NULL AUTO_INCREMENT,
@@ -16,7 +16,7 @@ create table `patient_list` (
 `age` int NOT NULL,
 `owner_name` nvarchar(45) NOT NULL,
 `owner_surname` nvarchar(45) NOT NULL,
-`email` nvarchar(45) NOT NULL,
+`email` nvarchar(45) NOT NULL UNIQUE,
 `current_customer` bool,
 `version`int NOT NULL);
 

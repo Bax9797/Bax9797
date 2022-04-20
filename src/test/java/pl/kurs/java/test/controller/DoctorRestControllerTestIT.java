@@ -14,8 +14,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 import pl.kurs.java.test.model.CreateDoctorRequest;
-import pl.kurs.java.test.repository.DoctorRepository;
-import pl.kurs.java.test.service.doctor.DoctorService;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -76,7 +74,7 @@ class DoctorRestControllerTestIT {
     @Test
     void shouldNotAddDoctorAndThrowsDuplicateNipException() throws Exception {
         CreateDoctorRequest underTest = new CreateDoctorRequest("Michal", "Kot", "Kardiolog",
-                "Psy", 100.00, "543667321");
+                "Psy", 100.00, "54366732");
         String content = objectMapper.writeValueAsString(underTest);
         mockMvc.perform(post("/doctor")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -84,7 +82,7 @@ class DoctorRestControllerTestIT {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("nip"))
-                .andExpect(jsonPath("$.fieldErrors[0].message").value("Nip is already taken"));
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("ERROR_NIP_EXISTS"));
     }
 
     @Test
@@ -103,11 +101,11 @@ class DoctorRestControllerTestIT {
 
     @Test
     void shouldGetById() throws Exception {
-        mockMvc.perform(get("/doctor/2")
+        mockMvc.perform(get("/doctor/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("2"));
+                .andExpect(jsonPath("$.id").value("1"));
     }
 
     @Test
@@ -116,17 +114,19 @@ class DoctorRestControllerTestIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorMessage").value("Doctor not found with id : 500"));
+                .andExpect(jsonPath("$.errorCode").value("ENTITY_NOT_FOUND"))
+                .andExpect(jsonPath("$.entityName").value("doctor"))
+                .andExpect(jsonPath("$.id").value("500"));
     }
 
     @Test
     void shouldDismissTheEmployee() throws Exception {
-        mockMvc.perform(put("/doctor/1/fire")
+        mockMvc.perform(put("/doctor/2/fire")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value(
-                        "changed status of given doctor id, this doctor will be not able to handle any visits"));
+                        "dismiss"));
     }
 
     @Test
@@ -135,7 +135,10 @@ class DoctorRestControllerTestIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorMessage").value("Doctor not found with id : 500"));
+                .andExpect(jsonPath("$.errorCode").value("ENTITY_NOT_FOUND"))
+                .andExpect(jsonPath("$.entityName").value("doctor"))
+                .andExpect(jsonPath("$.id").value("500"));
+
     }
 
     @Test

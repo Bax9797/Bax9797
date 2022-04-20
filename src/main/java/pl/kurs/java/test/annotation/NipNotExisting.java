@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = NipNotExistingValidator.class)
 @Documented
 public @interface NipNotExisting {
-    String message() default "Nip is already taken";
+    String message() default "ERROR_NIP_EXISTS";
 
     Class<?>[] groups() default {};
 

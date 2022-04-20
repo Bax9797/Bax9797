@@ -11,7 +11,7 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = EmailNotExistingValidator.class)
 @Documented
 public @interface EmailNotExisting {
-    String message() default "Email is already taken";
+    String message() default "ERROR_ENTITY_EXISTS";
 
     Class<?>[] groups() default {};
 

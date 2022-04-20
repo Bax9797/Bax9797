@@ -65,7 +65,7 @@ public class PatientRestController {
     @PutMapping("/{id}/remove")
     public ResponseEntity removeFromTheListOfCurrentPatients(@PathVariable("id") int id) {
         patientService.removePatient(id);
-        ResponseMessageDto response = new ResponseMessageDto("changed status of given patient id, this client is no longer our patient");
+        ResponseMessageDto response = new ResponseMessageDto("delete");
         return new ResponseEntity(response, HttpStatus.OK);
     }
 

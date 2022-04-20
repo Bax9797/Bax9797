@@ -6,6 +6,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class TimeResponseException extends RuntimeException {
     public TimeResponseException() {
-        super(" time to perform the operation has passed");
+        super("TIME_RESPONSE_EXCEPTION");
     }
 }
