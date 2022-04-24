@@ -26,15 +26,6 @@ class PatientServiceTest {
     }
 
     @Test
-    void findByIdTest() {
-        Patient expected = new Patient("test1", "test1", "test1", 1, "test1",
-                "test1", "test2022@gmail.com", true);
-        when(patientRepository.findById(anyInt())).thenReturn(Optional.of(expected));
-        Patient given = patientService.findById(1);
-        assertEquals(given, expected);
-    }
-
-    @Test
     void saveNewPatientTest() {
         CreatePatientRequest model = new CreatePatientRequest("test1", "pies", "pitbull", 2,
                 "test1", "test1", "test2022@gmail.com");

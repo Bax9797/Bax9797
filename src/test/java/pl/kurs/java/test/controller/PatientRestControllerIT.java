@@ -137,7 +137,8 @@ class PatientRestControllerIT {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.errorCode").value("ENTITY_NOT_FOUND"))
                 .andExpect(jsonPath("$.entityName").value("patient"))
-                .andExpect(jsonPath("$.id").value("1111"));;
+                .andExpect(jsonPath("$.id").value("1111"));
+        ;
     }
 
     @Test

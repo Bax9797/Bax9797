@@ -32,6 +32,4 @@ public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
     @Lock(LockModeType.PESSIMISTIC_READ)
     @Query("SELECT d FROM Doctor d WHERE d.id = ?1")
     Optional<Doctor> findByIdForRead(int id);
-
-
 }

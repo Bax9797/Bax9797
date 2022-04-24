@@ -31,7 +31,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-//@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class VisitService {
 
     private final VisitRepository repository;
@@ -65,23 +64,23 @@ public class VisitService {
 
     @Transactional
     public int validationOfTheEnteredParameterData(VisitToAddRequest visitToAddRequest) throws TemplateException, IOException, MessagingException {
+        //lock jest wykonywany w Repo
+        Doctor doctor = doctorRepository.findByIdForWrite(visitToAddRequest.getDoctorId())
+                .orElseThrow(() -> new EntityNotFoundException("doctor", visitToAddRequest.getDoctorId()));
+        Patient patient = patientRepository.findByIdForWrite(visitToAddRequest.getPatientId())
+                .orElseThrow(() -> new EntityNotFoundException("patient", visitToAddRequest.getPatientId()));
 
-        if (!checkIfDoctorIsFreeOnThisDate(visitToAddRequest.getDoctorId(), visitToAddRequest.getDate()))
+        if (!checkIfDoctorIsFreeOnThisDate(doctor.getId(), visitToAddRequest.getDate()))
             throw new ValidDateException("Doctor");
-        if (!checkIfPatientIsFreeOnThisDate(visitToAddRequest.getPatientId(), visitToAddRequest.getDate()))
+        if (!checkIfPatientIsFreeOnThisDate(patient.getId(), visitToAddRequest.getDate()))
             throw new ValidDateException("Patient");
         return saveVisit(visitToAddRequest).getId();
     }
 
-    @Transactional()
+    @Transactional
     public boolean checkIfPatientIsFreeOnThisDate(int patientId, LocalDateTime dateTime) {
         LocalDateTime end = dateTime.plusHours(1L);
-        //LOCKUEJ KRUWA W REPO
         List<Visit> list = repository.findByPatientId(patientId);
-        Patient patient= patientRepository.getById(patientId);
-        for (Visit visit : patient.getVisits()) {
-            //
-        }
         for (Visit visit : list) {
             if (visit.getStartVisit().isEqual(dateTime) && visit.getEndVisit().isEqual(end)) return false;
             if ((dateTime.isAfter(visit.getStartVisit()) && dateTime.isBefore(visit.getEndVisit()))
@@ -116,7 +115,6 @@ public class VisitService {
         repository.updateVisitStatus(Status.CONFIRMED, visitToConfirm.getId());
         return repository.existsById(visitToConfirm.getId());
     }
-
 
     public boolean checkingTokenToCanceledVisit(String code) {
         Token token = tokenGeneratorRepository.getByCode(code)

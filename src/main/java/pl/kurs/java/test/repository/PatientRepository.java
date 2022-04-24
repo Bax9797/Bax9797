@@ -22,11 +22,11 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
 
     @Transactional
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p FROM Patient p WHERE .id = ?1")
+    @Query("SELECT p FROM Patient p WHERE p.id = ?1")
     Optional<Patient> findByIdForWrite(int id);
 
     @Transactional
     @Lock(LockModeType.PESSIMISTIC_READ)
-    @Query("SELECT p FROM Patient p WHERE .id = ?1")
+    @Query("SELECT p FROM Patient p WHERE p.id = ?1")
     Optional<Patient> findByIdForRead(int id);
 }

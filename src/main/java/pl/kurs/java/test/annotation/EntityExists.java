@@ -20,5 +20,4 @@ public @interface EntityExists {
     Class<? extends Payload>[] payload() default {};
 
     Class type();
-
 }

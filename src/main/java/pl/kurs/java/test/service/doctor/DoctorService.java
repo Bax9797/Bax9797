@@ -19,6 +19,7 @@ public class DoctorService {
 
     @Transactional
     public Doctor findById(int id) {
+        //lockuje w repo
         return repository.findByIdForRead(id)
                 .orElseThrow(() -> new EntityNotFoundException("doctor", id));
     }

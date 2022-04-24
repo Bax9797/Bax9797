@@ -8,7 +8,6 @@ import lombok.experimental.Accessors;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import javax.websocket.server.PathParam;
 import java.util.Set;
 
 @Getter
@@ -37,7 +36,6 @@ public class Doctor {
     @OneToMany(mappedBy = "doctor",
             cascade = CascadeType.ALL)
     private Set<Visit> visits;
-
 
     public Doctor(String name, String surname, String medicalSpecialization, String animalSpecialization, double rate, String nip, boolean hired) {
         this.name = name;

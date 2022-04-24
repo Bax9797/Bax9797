@@ -11,11 +11,13 @@ import pl.kurs.java.test.exception.errors.ErrorMessageResponse;
 import pl.kurs.java.test.exception.errors.ErrorsResponse;
 import pl.kurs.java.test.exception.errors.FieldValidationError;
 
+import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.sql.SQLException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handlerMethodArgumentNotValid(MethodArgumentNotValidException exception) {
         ErrorsResponse errorResult = new ErrorsResponse().setCode("METHOD_ARGUMENT_NOT_VALID_EXCEPTION");
@@ -28,7 +30,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(SQLException.class)
-    public ResponseEntity<?> SqlExceptionHandler(SQLException exception) {
+    public ResponseEntity<?> sqlExceptionHandler(SQLException exception) {
         ErrorMessageResponse response = new ErrorMessageResponse()
                 .setCode("SQL_EXCEPTION")
                 .setEntityName(exception.getMessage());
@@ -36,21 +38,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<?> ConstraintExceptionHandler(org.hibernate.exception.ConstraintViolationException exception) {
-        ErrorMessageResponse response = new ErrorMessageResponse()
-                .setCode("CONSTRAINT_EXCEPTION")
-                .setEntityName(exception.getMessage());
-        return new ResponseEntity<>(exception, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> constraintExceptionHandler(ConstraintViolationException exception) {
+        ErrorsResponse errorResult = new ErrorsResponse().setCode("CONSTRAINT_EXCEPTION");
+        for (ConstraintViolation error : exception.getConstraintViolations()) {
+            errorResult.getFieldErrors()
+                    .add(new FieldValidationError(error.getPropertyPath().toString(),
+                            error.getMessage()));
+        }
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
     }
-//
-//     @ExceptionHandler(MethodConstraintViolationException.class)
-//    public ResponseEntity<?> ConstraintExceptionHandler(SQLIntegrityConstraintViolationException exception) {
-//        ErrorsResponse errorResult = new ErrorsResponse().setCode("CONSTRAINT_EXCEPTION");
-////        for (ConstraintViolation error : exception.getConstraintViolations()) {
-////            errorResult.getFieldErrors()
-////                    .add(new FieldValidationError(error.getPropertyPath().toString(),
-////                            error.getMessage()));
-////        }
-//        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
-//    }
 }
